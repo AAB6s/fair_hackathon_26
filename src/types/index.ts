@@ -98,6 +98,53 @@ export interface Advisory {
   actions: string[];
 }
 
+export interface TreatmentModelInput {
+  P2O5_percent: number;
+  CaO_percent: number;
+  SO3_percent: number;
+  F_percent: number;
+  SiO2_percent: number;
+  Fe2O3_percent: number;
+  Al2O3_percent: number;
+  MgO_percent: number;
+  Na2O_percent: number;
+  K2O_percent: number;
+  Cd_ppm: number;
+  Pb_ppm: number;
+  Zn_ppm: number;
+  As_ppm: number;
+  Ra226_Bq_per_kg: number;
+  moisture_percent: number;
+  pH_initial: number;
+  temperature_C: number;
+}
+
+export interface TreatmentModelOutput {
+  lime_milk_kg_per_ton: number;
+  washing_time_min: number;
+  P2O5_recovery_percent: number;
+  treatment_cost_USD_per_ton: number;
+  final_pH: number;
+}
+
+export interface TreatmentMetric {
+  algorithm: string;
+  r2: number;
+  mae: number;
+  rmse: number;
+}
+
+export interface TreatmentRecommendation {
+  input: TreatmentModelInput;
+  output: TreatmentModelOutput;
+  source: "api" | "fallback";
+  loading: boolean;
+  lastUpdated: number;
+  note: string;
+  metrics?: Partial<Record<keyof TreatmentModelOutput, TreatmentMetric>>;
+  error?: string;
+}
+
 export interface SystemState {
   scenario: Scenario;
   lastUpdated: number;

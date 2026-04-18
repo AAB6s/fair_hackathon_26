@@ -1,0 +1,211 @@
+================================================================================
+PHOSPHOGYPSUM TREATMENT OPTIMIZATION - HOW TO USE THE MODEL
+================================================================================
+
+
+1. WHAT YOU HAVE
+----------------
+
+After running the notebook (phosphogypsum_training.ipynb), the following files
+will exist in your working directory:
+
+    phosphogypsum_training.ipynb    -> the notebook that trains everything
+    phosphogypsum_dataset.csv       -> the generated training dataset
+    pipeline.py                     -> the script you use to make predictions
+    models/
+        scaler.pkl                                       -> feature scaler
+        metadata.json                                    -> info about models
+        lime_milk_kg_per_ton__xgboost.pkl                -> trained model 1
+        washing_time_min__xgboost.pkl                    -> trained model 2
+        P2O5_recovery_percent__random_forest.pkl         -> trained model 3
+        treatment_cost_USD_per_ton__xgboost.pkl          -> trained model 4
+        final_pH__random_forest.pkl                      -> trained model 5
+
+You do NOT need the notebook to make predictions. The notebook is only used
+once, to train and save the models. After that, pipeline.py does everything.
+
+
+2. REQUIREMENTS
+---------------
+
+Python 3.9 or higher. Install dependencies once:
+
+    pip install numpy pandas scikit-learn xgboost joblib
+
+
+3. THE EASIEST WAY TO USE IT - JUST RUN THE SCRIPT
+--------------------------------------------------
+
+From the folder that contains pipeline.py and the models/ subfolder:
+
+    python pipeline.py
+
+This runs a built-in demo sample and prints a full recommendation report.
+Use this to check that everything is working.
+
+
+4. USING IT FROM YOUR OWN PYTHON CODE
+-------------------------------------
+
+Put your code in the same folder as pipeline.py and models/. Then:
+
+    from pipeline import PhosphogypsumPipeline
+
+    pipe = PhosphogypsumPipeline(models_dir="models")
+
+    sample = {
+        "P2O5_percent":      2.5,
+        "CaO_percent":       30.0,
+        "SO3_percent":       43.0,
+        "F_percent":         1.2,
+        "SiO2_percent":      2.5,
+        "Fe2O3_percent":     0.3,
+        "Al2O3_percent":     0.2,
+        "MgO_percent":       0.1,
+        "Na2O_percent":      0.15,
+        "K2O_percent":       0.08,
+        "Cd_ppm":            5.0,
+        "Pb_ppm":            10.0,
+        "Zn_ppm":            80.0,
+        "As_ppm":            8.0,
+        "Ra226_Bq_per_kg":   450.0,
+        "moisture_percent":  18.0,
+        "pH_initial":        3.5,
+        "temperature_C":     25.0,
+    }
+
+    result = pipe.predict(sample)
+    print(result)
+
+The output is a dictionary:
+
+    {
+        "lime_milk_kg_per_ton":       68.15,
+        "washing_time_min":           49.4,
+        "P2O5_recovery_percent":      79.37,
+        "treatment_cost_USD_per_ton": 21.62,
+        "final_pH":                   7.65,
+    }
+
+
+5. GETTING A NICE FORMATTED REPORT
+----------------------------------
+
+Instead of a plain dictionary, use .report() to get a human-readable report
+as a string:
+
+    print(pipe.report(sample))
+
+Output looks like this:
+
+    ============================================================
+    PHOSPHOGYPSUM TREATMENT RECOMMENDATION
+    ============================================================
+    Input sample:
+      P2O5=2.50%  CaO=30.00%  SO3=43.00%  F=1.20%
+      Initial pH=3.50  T=25.0C  Moisture=18.0%
+      Heavy metals (ppm): Cd=5.0  Pb=10.0  As=8.0  Zn=80.0
+      Ra-226: 450 Bq/kg
+
+    Recommended treatment:
+      Lime milk Ca(OH)2 dose : 68.15 kg/ton
+      Washing time           : 49.4 min
+
+    Expected outcomes:
+      P2O5 recovery          : 79.37 %
+      Final pH after process : 7.65
+      Treatment cost         : $21.62 / ton
+
+      [OK] Final pH within environmental norms (6.5-8.5)
+      [OK] High P2O5 recovery - economically favorable
+    ============================================================
+
+
+6. PREDICTING MULTIPLE SAMPLES AT ONCE (BATCH)
+----------------------------------------------
+
+You can pass a list of dictionaries, or a pandas DataFrame with the right
+columns, and you will get a DataFrame back:
+
+    import pandas as pd
+    from pipeline import PhosphogypsumPipeline
+
+    pipe = PhosphogypsumPipeline()
+
+    samples = pd.read_csv("my_samples.csv")
+    predictions = pipe.predict(samples)
+    predictions.to_csv("predictions.csv", index=False)
+
+
+7. INPUT FEATURES - THE 18 REQUIRED FIELDS
+------------------------------------------
+
+Every sample, whether a dict or a row in a CSV, must contain ALL of these:
+
+    P2O5_percent         Phosphorus pentoxide              (%)
+    CaO_percent          Calcium oxide                     (%)
+    SO3_percent          Sulfur trioxide                   (%)
+    F_percent            Fluorides                         (%)
+    SiO2_percent         Silica                            (%)
+    Fe2O3_percent        Iron oxide                        (%)
+    Al2O3_percent        Alumina                           (%)
+    MgO_percent          Magnesium oxide                   (%)
+    Na2O_percent         Sodium oxide                      (%)
+    K2O_percent          Potassium oxide                   (%)
+    Cd_ppm               Cadmium                           (ppm)
+    Pb_ppm               Lead                              (ppm)
+    Zn_ppm               Zinc                              (ppm)
+    As_ppm               Arsenic                           (ppm)
+    Ra226_Bq_per_kg      Radium-226 radioactivity          (Bq/kg)
+    moisture_percent     Moisture content                  (%)
+    pH_initial           Initial pH of the sample          (-)
+    temperature_C        Process / ambient temperature     (degC)
+
+
+8. OUTPUT FIELDS - THE 5 PREDICTIONS
+------------------------------------
+
+    lime_milk_kg_per_ton          Optimal lime milk dose        (kg/ton)
+    washing_time_min              Required washing time         (min)
+    P2O5_recovery_percent         Expected P2O5 recovery        (%)
+    treatment_cost_USD_per_ton    Estimated treatment cost      (USD/ton)
+    final_pH                      Final pH after treatment      (-)
+
+
+9. RETRAINING WITH YOUR OWN REAL DATA
+-------------------------------------
+
+When you eventually collect real experimental measurements, save them as a
+CSV with the exact same column names as the 18 inputs + 5 outputs shown
+above. Then in the notebook, replace this block:
+
+    df = generate_dataset(5000)
+    df.to_csv("phosphogypsum_dataset.csv", index=False)
+
+with:
+
+    df = pd.read_csv("your_real_data.csv")
+
+Run the notebook again from top to bottom. The new models overwrite the
+old ones in models/. The pipeline.py keeps working with zero changes on
+your side.
+
+
+10. IF SOMETHING GOES WRONG
+---------------------------
+
+- "Missing required input features" -> a column is missing in your input.
+  Check the list in section 7 above. All 18 must be present.
+
+- "FileNotFoundError: models/metadata.json" -> you are running pipeline.py
+  from the wrong directory. Either cd into the folder containing models/,
+  or pass the full path:
+      pipe = PhosphogypsumPipeline(models_dir="/full/path/to/models")
+
+- "ModuleNotFoundError: No module named 'xgboost'" -> run the install
+  command from section 2.
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

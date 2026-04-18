@@ -14,3 +14,6 @@ Thumbs.db
 .idea/
 
 .claude/
+__pycache__/
+model1/models/
+model1/phosphogypsum_dataset.csv

@@ -5,11 +5,13 @@ import { GabesMap } from "./components/GabesMap";
 import { MetricCard } from "./components/MetricCard";
 import { PredictionPanel } from "./components/PredictionPanel";
 import { StatusBadge } from "./components/StatusBadge";
+import { TreatmentOptimizerPanel } from "./components/TreatmentOptimizerPanel";
 import {
   compassFromDegrees,
   scenarioDescriptors,
   scenarioOrder,
 } from "./data/scenarios";
+import { useTreatmentRecommendation } from "./hooks/useTreatmentRecommendation";
 import { useDashboardStore } from "./store/useDashboardStore";
 import { dashboardTheme } from "./theme/dashboardTheme";
 import type { FactoryUnit } from "./types";
@@ -124,6 +126,7 @@ export default function App() {
     .reduce((sum, region) => sum + region.population, 0);
   const activeAlerts = state.alerts.slice(0, 3);
   const scenarioMeta = scenarioDescriptors[state.scenario];
+  const treatmentRecommendation = useTreatmentRecommendation(state, selectedRegion);
   const summaryCards = [
     { label: "خطر", value: `${dangerIndicators}` },
     { label: "تحذير", value: `${warningIndicators}` },
@@ -405,6 +408,11 @@ export default function App() {
                   </p>
                 </div>
               </div>
+
+              <TreatmentOptimizerPanel
+                recommendation={treatmentRecommendation}
+                regionName={selectedRegion.name}
+              />
 
               <div className="grid gap-2 md:grid-cols-2">
                 {state.units.map((unit) => (
