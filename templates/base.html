@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Gabès Air Monitor{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --primary: #0f4c75;
+      --accent:  #1b6ca8;
+    }
+    body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+    .navbar { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+    .navbar-brand { font-weight: 700; }
+    .nav-link { color: rgba(255,255,255,0.85) !important; }
+    .nav-link:hover, .nav-link.active { color: #fff !important; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 600; }
+    .btn-primary { background: var(--primary); border-color: var(--primary); }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .fallback-banner { background: #fff3cd; border-left: 4px solid #f59e0b; padding: .75rem 1rem; border-radius: 6px; }
+    footer { margin-top: 3rem; padding: 1.5rem 0; background: var(--primary); color: rgba(255,255,255,0.7); text-align: center; font-size: .85rem; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'dashboard' %}">
+      <i class="bi bi-wind me-2"></i>Gabès Air Monitor
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+             href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'sensor_predict' %}active{% endif %}"
+             href="{% url 'sensor_predict' %}"><i class="bi bi-cpu me-1"></i>Sensor Predict</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'meteo_predict' %}active{% endif %}"
+             href="{% url 'meteo_predict' %}"><i class="bi bi-geo-alt me-1"></i>Meteo Predict</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}"
+             href="{% url 'history' %}"><i class="bi bi-clock-history me-1"></i>History</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+
+<footer>
+  <i class="bi bi-wind me-1"></i> Gabès Air Quality Monitoring System — ESPRIT AI Project
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

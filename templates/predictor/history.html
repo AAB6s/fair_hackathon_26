@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}History – Gabès Air Monitor{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-clock-history me-2"></i>Prediction History</span>
+    <div class="d-flex gap-2">
+      <a href="{% url 'history' %}"             class="btn btn-sm btn-outline-light {% if not ptype %}active{% endif %}">All</a>
+      <a href="{% url 'history' %}?type=sensor" class="btn btn-sm btn-outline-light {% if ptype == 'sensor' %}active{% endif %}">Model 1+2</a>
+      <a href="{% url 'history' %}?type=meteo"  class="btn btn-sm btn-outline-light {% if ptype == 'meteo' %}active{% endif %}">Model 3</a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if logs %}
+    <div class="table-responsive">
+      <table class="table table-hover table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>#</th><th>Type</th><th>Season</th><th>Wind</th>
+            <th>Gas</th><th>PPM</th><th>Danger</th><th>Zone</th><th>Mode</th><th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="text-muted">{{ log.id }}</td>
+            <td><span class="badge bg-secondary">{{ log.prediction_type }}</span></td>
+            <td class="small">{{ log.season|default:"—" }}</td>
+            <td class="small text-muted">
+              {% if log.wind_direction %}{{ log.wind_direction|floatformat:0 }}°{% endif %}
+              {% if log.wind_speed %} / {{ log.wind_speed|floatformat:0 }}{% endif %}
+            </td>
+            <td>{{ log.predicted_gas|default:"—" }}</td>
+            <td class="small">{% if log.gas_ppm %}{{ log.gas_ppm|floatformat:0 }}{% else %}—{% endif %}</td>
+            <td>
+              {% if log.danger_level %}
+              <span class="badge text-capitalize" style="background:
+                {% if log.danger_level == 'high' %}#ef4444
+                {% elif log.danger_level == 'medium' %}#f97316
+                {% else %}#22c55e{% endif %}">{{ log.danger_level }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="small">{{ log.predicted_zone|default:"—"|truncatechars:20 }}</td>
+            <td>
+              {% if log.used_fallback %}
+                <span class="badge bg-warning text-dark">Physics</span>
+              {% else %}
+                <span class="badge bg-success">ML</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ log.created_at|date:"d/m/y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted p-5">
+      <i class="bi bi-inbox display-3 d-block mb-3 opacity-25"></i>
+      <p>No predictions found. <a href="{% url 'sensor_predict' %}">Make your first prediction!</a></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

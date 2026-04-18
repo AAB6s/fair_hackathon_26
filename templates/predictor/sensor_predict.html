@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Sensor Prediction – Gabès Air Monitor{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Form -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <i class="bi bi-cpu me-2"></i>Model 1 + 2 — Gas ID &amp; Zone Prediction
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Input: measured gas concentration + meteorological conditions.<br>
+          Output: <strong>gas type</strong> (SO₂/HF/NOx), <strong>danger level</strong>, and <strong>affected zone</strong>.
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">{{ form.gas_ppm.label }}</label>
+              {{ form.gas_ppm }}
+              {% if form.gas_ppm.errors %}<div class="text-danger small mt-1">{{ form.gas_ppm.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.wind_direction.label }}</label>
+              {{ form.wind_direction }}
+              {% if form.wind_direction.errors %}<div class="text-danger small mt-1">{{ form.wind_direction.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.wind_speed.label }}</label>
+              {{ form.wind_speed }}
+              {% if form.wind_speed.errors %}<div class="text-danger small mt-1">{{ form.wind_speed.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.hour.label }}</label>
+              {{ form.hour }}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.season.label }}</label>
+              {{ form.season }}
+            </div>
+          </div>
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-search me-2"></i>Run Prediction
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick test values matching notebook test cases -->
+    <div class="card mt-3">
+      <div class="card-header bg-light"><i class="bi bi-lightbulb me-2"></i>Quick Test Values (from notebook)</div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-danger"  onclick="fill(320,45,8,14,'Summer')">SO₂ · Hot summer SE</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="fill(80,315,12,3,'Winter')">HF · Cold NW night</button>
+          <button class="btn btn-sm btn-outline-success" onclick="fill(15,90,5,20,'Spring')">Low PPM · Easterly</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="col-lg-6">
+    {% if result %}
+    <div class="card" style="border-left:5px solid {{ result.color }};">
+      <div class="card-header text-white" style="background:{{ result.color }}">
+        <i class="bi bi-check-circle me-2"></i>Prediction Result #{{ result.log_id }}
+      </div>
+      <div class="card-body">
+        {% if result.fallback %}
+        <div class="fallback-banner mb-3">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Physics Fallback Active.</strong> Upload
+          <code>model_gas.pkl</code>, <code>model_danger.pkl</code>, <code>encoders.pkl</code>,
+          <code>model_gps.pkl</code>, <code>model_zone.pkl</code>, <code>encoders_m2.pkl</code>
+          into <code>ml_models/</code> for ML predictions.
+        </div>
+        {% endif %}
+
+        <!-- Gas + Danger cards -->
+        <div class="row g-3 mb-3 text-center">
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:rgba(15,76,117,0.08)">
+              <div class="fs-2 mb-1">
+                {% if result.gas == 'SO2' %}🟡{% elif result.gas == 'HF' %}🔴{% else %}🔵{% endif %}
+              </div>
+              <div class="fs-5 fw-bold">{{ result.gas }}</div>
+              <div class="text-muted small">Gas Type</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:{{ result.color }}22">
+              <div class="fs-2 mb-1">
+                {% if result.danger == 'high' %}🚨{% elif result.danger == 'medium' %}⚠️{% else %}✅{% endif %}
+              </div>
+              <div class="fs-5 fw-bold" style="color:{{ result.color }}">{{ result.danger|capfirst }}</div>
+              <div class="text-muted small">Danger Level</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:rgba(59,130,246,0.08)">
+              <div class="fs-2 mb-1">📍</div>
+              <div class="fs-6 fw-bold">{{ result.zone_name|cut:"_" }}</div>
+              <div class="text-muted small">Zone {{ result.zone_id }}</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="table table-sm table-borderless mb-0">
+          <tr><td class="text-muted">Zone Description</td><td class="small">{{ result.zone_desc }}</td></tr>
+          <tr><td class="text-muted">GPS Coordinates</td><td><code>{{ result.lat }}, {{ result.lon }}</code></td></tr>
+          <tr><td class="text-muted">Confidence</td><td class="fw-semibold">{{ result.confidence }}</td></tr>
+          <tr><td class="text-muted">Mode</td>
+            <td>{% if result.fallback %}<span class="badge bg-warning text-dark">Physics Fallback</span>
+                {% else %}<span class="badge bg-success">ML Model</span>{% endif %}</td>
+          </tr>
+        </table>
+
+        {% if result.danger == 'high' %}
+        <div class="alert alert-danger mt-3 mb-0">
+          <i class="bi bi-exclamation-octagon me-2"></i><strong>High danger!</strong> Evacuate {{ result.zone_name|cut:"_" }} and alert emergency services.
+        </div>
+        {% elif result.danger == 'medium' %}
+        <div class="alert alert-warning mt-3 mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i><strong>Medium risk</strong> in {{ result.zone_name|cut:"_" }}. Limit outdoor exposure.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="card d-flex align-items-center justify-content-center"
+         style="border:2px dashed #cbd5e1; min-height:300px;">
+      <div class="text-center text-muted p-4">
+        <i class="bi bi-cpu display-3 mb-3 d-block opacity-25"></i>
+        <p class="mb-0">Fill in values and click <strong>Run Prediction</strong>.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fill(ppm, dir, spd, hr, season) {
+  document.querySelector('[name=gas_ppm]').value       = ppm;
+  document.querySelector('[name=wind_direction]').value = dir;
+  document.querySelector('[name=wind_speed]').value     = spd;
+  document.querySelector('[name=hour]').value           = hr;
+  document.querySelector('[name=season]').value         = season;
+}
+</script>
+{% endblock %}

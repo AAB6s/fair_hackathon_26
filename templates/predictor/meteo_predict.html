@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Meteo Prediction – Gabès Air Monitor{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Form -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <i class="bi bi-cloud-sun me-2"></i>Model 3 — Real Meteo Dispersion Pipeline
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Input: daily meteorological data from your ETL pipeline.<br>
+          The model estimates gas PPM via a temperature/wind proxy, then predicts
+          the <strong>GPS plume landing point</strong> and <strong>affected zone</strong>.
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.temp.label }}</label>
+              {{ form.temp }}
+              {% if form.temp.errors %}<div class="text-danger small mt-1">{{ form.temp.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.wind_speed.label }}</label>
+              {{ form.wind_speed }}
+              {% if form.wind_speed.errors %}<div class="text-danger small mt-1">{{ form.wind_speed.errors }}</div>{% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.wind_direction.label }}</label>
+              {{ form.wind_direction }}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">{{ form.season.label }}</label>
+              {{ form.season }}
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">{{ form.gas_type.label }}</label>
+              {{ form.gas_type }}
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-semibold">{{ form.hour.label }}</label>
+              {{ form.hour }}
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-semibold">{{ form.precip.label }}</label>
+              {{ form.precip }}
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-semibold">{{ form.day_of_year.label }}</label>
+              {{ form.day_of_year }}
+            </div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-success btn-lg">
+              <i class="bi bi-geo me-2"></i>Predict Dispersion Zone
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick tests matching notebook Cell 10 -->
+    <div class="card mt-3">
+      <div class="card-header bg-light"><i class="bi bi-lightbulb me-2"></i>Quick Test Values (from notebook)</div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-danger"  onclick="fillMeteo(38,10,90,'Summer','SO2',12,0,200)">SO₂ · Hot summer E wind</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="fillMeteo(15,25,315,'Winter','HF',12,0,15)">HF · Cold NW winter</button>
+          <button class="btn btn-sm btn-outline-warning" onclick="fillMeteo(22,8,180,'Autumn','NOx',12,0,290)">NOx · Autumn S wind</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="col-lg-6">
+    {% if result %}
+    <div class="card">
+      <div class="card-header text-white" style="background:{{ result.color }}">
+        <i class="bi bi-pin-map me-2"></i>Dispersion Result #{{ result.log_id }}
+      </div>
+      <!-- Leaflet map -->
+      <div id="result-map" style="height:270px;"></div>
+      <div class="card-body">
+        {% if result.fallback %}
+        <div class="fallback-banner mb-3">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Physics Fallback.</strong> Upload
+          <code>model_gps_m3.pkl</code>, <code>model_zone_m3.pkl</code>, <code>encoders_m3.pkl</code>
+          into <code>ml_models/</code> for ML predictions.
+        </div>
+        {% endif %}
+
+        <div class="row g-3 mb-3 text-center">
+          <div class="col-4">
+            <div class="p-2 rounded-3" style="background:rgba(15,76,117,0.08)">
+              <div class="fw-bold">{{ result.gas_ppm }} ppm</div>
+              <div class="text-muted small">Est. Gas PPM</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3" style="background:{{ result.color }}22">
+              <div class="fw-bold" style="color:{{ result.color }}">{{ result.danger|capfirst }}</div>
+              <div class="text-muted small">Danger Level</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3" style="background:rgba(59,130,246,0.08)">
+              <div class="fw-bold">Zone {{ result.zone_id }}</div>
+              <div class="text-muted small">{{ result.zone_name|cut:"_" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="table table-sm table-borderless mb-0">
+          <tr><td class="text-muted">Zone</td><td><span class="badge bg-primary">{{ result.zone_name }}</span></td></tr>
+          <tr><td class="text-muted">Description</td><td class="small">{{ result.zone_desc }}</td></tr>
+          <tr><td class="text-muted">GPS</td><td><code>{{ result.lat }}, {{ result.lon }}</code></td></tr>
+          <tr><td class="text-muted">Mode</td>
+            <td>{% if result.fallback %}<span class="badge bg-warning text-dark">Gaussian Plume</span>
+                {% else %}<span class="badge bg-success">ML Model 3</span>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="card d-flex align-items-center justify-content-center"
+         style="border:2px dashed #cbd5e1; min-height:300px;">
+      <div class="text-center text-muted p-4">
+        <i class="bi bi-wind display-3 mb-3 d-block opacity-25"></i>
+        <p class="mb-0">Enter meteo parameters and click <strong>Predict Dispersion Zone</strong>.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if result %}
+<script>
+const resultMap = L.map('result-map').setView([{{ result.lat }}, {{ result.lon }}], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {attribution:'© OpenStreetMap'}).addTo(resultMap);
+
+// Factory marker
+L.marker([33.8806, 10.0992]).addTo(resultMap)
+  .bindPopup('<strong>GCT Factory — W3CR+G9F</strong><br>Emission source');
+
+// Predicted impact
+const impactIcon = L.divIcon({
+  html: '<div style="background:#ef4444;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(239,68,68,.7)"></div>',
+  iconSize:[20,20], iconAnchor:[10,10]
+});
+L.marker([{{ result.lat }}, {{ result.lon }}], {icon: impactIcon})
+  .addTo(resultMap)
+  .bindPopup('<strong>Zone {{ result.zone_id }}: {{ result.zone_name }}</strong><br>{{ result.zone_desc }}')
+  .openPopup();
+
+// Dispersion line
+L.polyline([[33.8806, 10.0992],[{{ result.lat }}, {{ result.lon }}]], {
+  color:'#ef4444', weight:2, dashArray:'6 4'
+}).addTo(resultMap);
+</script>
+{% endif %}
+
+<script>
+function fillMeteo(temp, ws, wd, season, gas, hr, precip, doy) {
+  document.querySelector('[name=temp]').value           = temp;
+  document.querySelector('[name=wind_speed]').value     = ws;
+  document.querySelector('[name=wind_direction]').value = wd;
+  document.querySelector('[name=season]').value         = season;
+  document.querySelector('[name=gas_type]').value       = gas;
+  document.querySelector('[name=hour]').value           = hr;
+  document.querySelector('[name=precip]').value         = precip;
+  document.querySelector('[name=day_of_year]').value    = doy;
+}
+</script>
+{% endblock %}
