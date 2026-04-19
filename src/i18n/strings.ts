@@ -1,0 +1,245 @@
+import { loc, type LocalizedString } from "./types";
+
+/**
+ * Static UI strings — every visible label lives here.
+ * Keyed by `section.key` paths consumed via `t("header.title")`.
+ */
+export const STRINGS = {
+  app: {
+    platform: loc("منصة قابس البيئية", "Gabès Environmental Platform", "Plateforme Environnementale de Gabès"),
+    title: loc("شاشة القرار المباشر", "Live Decision Console", "Console de Décision en Direct"),
+  },
+  header: {
+    lastUpdated: loc("آخر تحديث", "Last update", "Dernière maj"),
+    wind: loc("رياح", "Wind", "Vent"),
+    affected: loc("سكان", "Residents", "Habitants"),
+    autoCycle: loc("تبديل تلقائي", "Auto cycle", "Rotation auto"),
+    fixedLanguage: loc("لغة ثابتة", "Fixed language", "Langue fixe"),
+    summary: {
+      danger: loc("خطر", "Danger", "Danger"),
+      warning: loc("تحذير", "Warning", "Alerte"),
+      zones: loc("مناطق", "Zones", "Zones"),
+      immediate: loc("فوري", "Immediate", "Immédiat"),
+    },
+    language: loc("اللغة", "Language", "Langue"),
+  },
+  panels: {
+    monitoring: loc("الرصد", "Monitoring", "Surveillance"),
+    indicators: loc("المؤشرات", "Indicators", "Indicateurs"),
+    map: loc("الخريطة", "Map", "Carte"),
+    mapTitle: loc("توزيع التلوث على المناطق", "Pollution distribution by zone", "Répartition de la pollution"),
+    actions: loc("الإجراءات", "Actions", "Actions"),
+    actionsTitle: loc("ما يجب تنفيذه الآن", "What to execute now", "À exécuter maintenant"),
+    alerts: loc("الإنذارات", "Alerts", "Alertes"),
+    alertsActive: loc("النشط الآن", "Active now", "Actives maintenant"),
+    factory: loc("المصنع", "Factory", "Usine"),
+    factoryUnits: loc("الوحدات والخسائر", "Units & losses", "Unités & pertes"),
+    advisory: loc("الإرشاد العام", "Public advisory", "Avis public"),
+    advisoryAudience: loc("الفئات", "Audiences", "Audiences"),
+    forecast: loc("التوقع", "Forecast", "Prévision"),
+    accessibility: loc("إتاحة", "Accessibility", "Accessibilité"),
+    accessibilityTitle: loc("صوت ولغة الإشارة", "Voice & Sign Language", "Voix & Langue des Signes"),
+  },
+  loss: {
+    acid: loc("حمض", "Acid", "Acide"),
+    cost: loc("كلفة", "Cost", "Coût"),
+    fish: loc("صيد", "Fishery", "Pêche"),
+    agri: loc("فلاحة", "Agriculture", "Agriculture"),
+    units: {
+      kg: loc("كغ", "kg", "kg"),
+      tons: loc("طن", "tons", "tonnes"),
+      hectares: loc("هك", "ha", "ha"),
+    },
+  },
+  unit: {
+    load: loc("حمل", "Load", "Charge"),
+    efficiency: loc("كفاءة", "Efficiency", "Efficacité"),
+    type: {
+      reactor: loc("تفاعل", "Reactor", "Réacteur"),
+      scrubber: loc("غاسلة", "Scrubber", "Laveur"),
+      filter: loc("ترشيح", "Filter", "Filtre"),
+      pump: loc("ضخ", "Pump", "Pompe"),
+      storage: loc("خزن", "Storage", "Stockage"),
+    },
+    status: {
+      online: loc("شغال", "Online", "En service"),
+      degraded: loc("متراجع", "Degraded", "Dégradé"),
+      offline: loc("متوقف", "Offline", "Hors service"),
+      stopped: loc("متوقف", "Stopped", "Arrêté"),
+    },
+  },
+  status: {
+    normal: loc("طبيعي", "Normal", "Normal"),
+    warning: loc("تحذير", "Warning", "Alerte"),
+    danger: loc("خطر", "Danger", "Danger"),
+  },
+  audience: {
+    residents: loc("السكان", "Residents", "Habitants"),
+    fishermen: loc("الصيادون", "Fishermen", "Pêcheurs"),
+    schools: loc("المدارس", "Schools", "Écoles"),
+    hospitals: loc("المستشفيات", "Hospitals", "Hôpitaux"),
+  },
+  priority: {
+    immediate: loc("فوري", "Immediate", "Immédiat"),
+    recommended: loc("موصى", "Recommended", "Recommandé"),
+    eta: loc("تنفيذ خلال", "Execute in", "Exécution dans"),
+    minutes: loc("د", "min", "min"),
+  },
+  category: {
+    stop: loc("إيقاف", "Stop", "Arrêter"),
+    scrubber: loc("غسل", "Scrubber", "Laveur"),
+    carbon: loc("فحم نشط", "Activated carbon", "Charbon actif"),
+    adjust: loc("تعديل", "Adjust", "Ajuster"),
+    evacuate: loc("إخلاء", "Evacuate", "Évacuer"),
+    monitor: loc("مراقبة", "Monitor", "Surveiller"),
+  },
+  time: {
+    now: loc("الآن", "now", "maintenant"),
+    seconds: loc("ث", "s", "s"),
+    minutes: loc("د", "m", "m"),
+  },
+  prediction: {
+    rationale: loc("السبب", "Reason", "Raison"),
+    peakIn: loc("الذروة بعد", "Peak in", "Pic dans"),
+    confidence: loc("الثقة", "Confidence", "Confiance"),
+    history: loc("ماضٍ", "Past", "Passé"),
+    forecastLabel: loc("توقع", "Forecast", "Prévision"),
+    spread: loc("امتداد", "Spread", "Étendue"),
+  },
+  map: {
+    pollution: loc("نسبة التلوث", "Pollution level", "Niveau de pollution"),
+    population: loc("السكان", "Population", "Population"),
+    distance: loc("بُعد", "Distance", "Distance"),
+    distanceUnit: loc("كم", "km", "km"),
+    windUnit: loc("م/ث", "m/s", "m/s"),
+    direction: loc("اتجاه", "Direction", "Direction"),
+    severity: loc("الحالة", "Severity", "Gravité"),
+    legend: loc("دليل الألوان", "Legend", "Légende"),
+    selected: loc("المنطقة المختارة", "Selected zone", "Zone sélectionnée"),
+    factory: loc("المصنع", "Factory", "Usine"),
+    recommendedAction: loc("الإجراء المقترح", "Recommended action", "Action recommandée"),
+    typeLabel: loc("النوع", "Type", "Type"),
+    types: {
+      industrial: loc("صناعي", "Industrial", "Industriel"),
+      urban: loc("حضري", "Urban", "Urbain"),
+      coastal: loc("ساحلي", "Coastal", "Côtier"),
+      agricultural: loc("فلاحي", "Agricultural", "Agricole"),
+      school: loc("مدرسي", "School belt", "Écoles"),
+    },
+    legendItems: {
+      urban: loc("نسيج عمراني", "Urban fabric", "Zones urbaines"),
+      oasis: loc("واحات", "Oasis", "Oasis"),
+      industrial: loc("منشآت صناعية", "Industrial sites", "Installations industrielles"),
+      phosphogypsum: loc("فوسفوجيبس", "Phosphogypsum", "Phosphogypse"),
+      roads: loc("طرق", "Roads", "Routes"),
+      rail: loc("سكة", "Rail", "Chemin de fer"),
+    },
+    metrics: {
+      air: loc("هواء", "Air", "Air"),
+      water: loc("ماء", "Water", "Eau"),
+      in30: loc("بعد 30 د", "In 30 min", "Dans 30 min"),
+      in60: loc("بعد 60 د", "In 60 min", "Dans 60 min"),
+    },
+  },
+  accessibility: {
+    statusReady: loc("جاهز", "ready", "prêt"),
+    statusLoading: loc("تحميل…", "loading…", "chargement…"),
+    statusFailed: loc("تعذر", "failed", "échec"),
+    statusIdle: loc("متوقف", "idle", "inactif"),
+    statusUnsupported: loc("غير مدعوم", "n/a", "n/d"),
+    avatarReady: loc("الأفاتار جاهز", "Avatar ready", "Avatar prêt"),
+    avatarLoading: loc("تحميل الأفاتار…", "Loading avatar…", "Chargement de l'avatar…"),
+    avatarFailed: loc("تعذر التحميل — تحقق من الاتصال", "Failed to load — check connection", "Échec — vérifiez la connexion"),
+    readSummary: loc("قراءة الملخص", "Read summary", "Lire le résumé"),
+    pause: loc("إيقاف مؤقت", "Pause", "Pause"),
+    resume: loc("متابعة", "Resume", "Reprendre"),
+    stop: loc("إيقاف", "Stop", "Arrêter"),
+    settings: loc("خيارات الصوت", "Voice settings", "Réglages voix"),
+    voice: loc("الصوت", "Voice", "Voix"),
+    rate: loc("السرعة", "Rate", "Vitesse"),
+    transcript: loc("النص المنطوق", "Live transcript", "Transcription en direct"),
+    speaking: loc("يقرأ", "speaking", "parle"),
+    sign: loc("ترجمة بلغة الإشارة", "Sign with avatar", "Traduire en signes"),
+    avatarTitle: loc("أفاتار الإشارة", "Sign-language Avatar", "Avatar Langue des Signes"),
+    avatarHint: loc(
+      "افتح الأفاتار ليترجم الملخص للصُّم.",
+      "The brief is interpreted automatically in sign language alongside text and audio.",
+      "Ouvrez l'avatar pour traduire le résumé en langue des signes."
+    ),
+    avatarNote: loc(
+      "مدمج بمكتبة VLibras المجانية. يمكنك تحديد أي نص في الصفحة ليترجمه الأفاتار.",
+      "Runs automatically through VLibras. If the service cannot load, the text brief remains available.",
+      "Avatar VLibras gratuit et open-source. Sélectionnez n'importe quel texte de la page pour le signer."
+    ),
+    segments: loc("مقطع", "segs", "segs"),
+    voiceNoneForLang: loc("لا أصوات لهذه اللغة", "No voices for this language", "Aucune voix pour cette langue"),
+    synced: loc("اللغة متزامنة مع الواجهة", "Synced with interface language", "Synchronisé avec la langue de l'interface"),
+    pitch: loc("الحدة", "Pitch", "Hauteur"),
+    summaryTitle: loc("ملخص اللوحة", "Dashboard brief", "Brief du tableau"),
+    summaryHint: loc(
+      "الصوت والترجمة بالإشارة يعملان تلقائيا بالتوازي مع النص الظاهر.",
+      "Speech and sign interpretation run automatically alongside the visible text.",
+      "La voix et la langue des signes fonctionnent automatiquement en parallèle du texte affiché."
+    ),
+    autoVoice: loc("صوت تلقائي", "Auto voice", "Voix auto"),
+    autoSign: loc("إشارة تلقائية", "Auto sign", "Signes auto"),
+    autoReady: loc("يعمل تلقائيا", "Running automatically", "Fonctionnement automatique"),
+    autoFallback: loc("عرض نصي فقط", "Text only", "Texte seul"),
+    avatarLocal: loc("أفاتار محلي", "Local interpreter", "Interprète local"),
+    avatarSyncing: loc("متزامن مع الصوت", "Synced with voice", "Synchronisé avec la voix"),
+    avatarStandby: loc("في وضع الانتظار", "Standing by", "En attente"),
+    nowSigning: loc("يترجم الآن", "Now signing", "En train de signer"),
+    avatarLocalHint: loc(
+      "يترجم الملخص بلغة الإشارة بالتوازي مع النص والصوت — بدون الحاجة إلى اتصال خارجي.",
+      "Interprets the brief in sign language alongside text and audio — no external connection needed.",
+      "Interprète le résumé en langue des signes en parallèle du texte et de la voix — sans connexion externe."
+    ),
+    avatarLocalNote: loc(
+      "أفاتار مدمج محلياً يتزامن لحظياً مع كل مقطع منطوق.",
+      "Bundled local avatar that stays in lock-step with every spoken segment.",
+      "Avatar local intégré, synchronisé en temps réel avec chaque segment parlé."
+    ),
+    paused: loc("متوقف مؤقتاً", "Paused", "En pause"),
+  },
+  scenario: {
+    label: {
+      normal: loc("عادي", "Normal", "Normal"),
+      leak: loc("تسرب", "Leak", "Fuite"),
+      high_pollution: loc("تلوث مرتفع", "High pollution", "Pollution élevée"),
+      scrubber_failure: loc("تعطل الغاسلة", "Scrubber failure", "Panne du laveur"),
+    },
+  },
+  treatment: {
+    title: loc("مُحسِّن المعالجة", "Treatment Optimizer", "Optimiseur de Traitement"),
+    subtitle: loc("معالجة الفوسفوجيبس", "Phosphogypsum treatment", "Traitement du phosphogypse"),
+    inputTitle: loc("مدخلات", "Inputs", "Entrées"),
+    outputTitle: loc("توصيات", "Recommendations", "Recommandations"),
+    apply: loc("تطبيق", "Apply", "Appliquer"),
+    fallback: loc("نموذج محلي", "Local fallback", "Modèle local"),
+    api: loc("نموذج بعيد", "Remote model", "Modèle distant"),
+    loading: loc("جارٍ الحساب…", "Computing…", "Calcul…"),
+    fallbackNote: loc(
+      "تعتمد اللوحة حاليًا على تقدير محلي لأن خدمة النموذج غير متاحة.",
+      "The dashboard is using a local estimate because the model service is unavailable.",
+      "Le tableau utilise une estimation locale car le service du modèle est indisponible."
+    ),
+    units: {
+      kgPerTon: loc("كغ/طن", "kg/t", "kg/t"),
+      usdPerTon: loc("$/طن", "$/t", "$/t"),
+    },
+    metrics: {
+      lime: loc("حليب الجير", "Lime milk", "Lait de chaux"),
+      washTime: loc("زمن الغسل", "Wash time", "Temps de lavage"),
+      recovery: loc("استرجاع P₂O₅", "P₂O₅ recovery", "Récupération P₂O₅"),
+      finalPh: loc("pH النهائي", "Final pH", "pH final"),
+      cost: loc("كلفة المعالجة", "Treatment cost", "Coût du traitement"),
+    },
+    inputs: {
+      region: loc("أساس المنطقة", "Zone basis", "Zone de base"),
+      initialPh: loc("pH أولي", "Initial pH", "pH initial"),
+      fluoride: loc("فلوريد", "Fluoride", "Fluorure"),
+    },
+  },
+} as const;
+
+export type StringNode = LocalizedString | { [k: string]: StringNode };

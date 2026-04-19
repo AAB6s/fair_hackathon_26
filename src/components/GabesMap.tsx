@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { gabesReferenceMap } from "../data/gabesReferenceMap";
+import { useLocale } from "../i18n/LocaleContext";
+import type { LocalizedString } from "../i18n/types";
 import { dashboardTheme } from "../theme/dashboardTheme";
 import type { Action, Indicator, Prediction, Region } from "../types";
 import { StatusBadge } from "./StatusBadge";
@@ -18,21 +20,21 @@ type MapLegendItem =
   | { label: string; swatch: string; dots?: boolean; line?: never }
   | { label: string; line: string; swatch?: never; dots?: never };
 
-const mapLegend: MapLegendItem[] = [
-  { label: "نسيج عمراني", swatch: dashboardTheme.palette.map.urban },
-  { label: "واحات", swatch: dashboardTheme.palette.map.oasis },
-  { label: "منشآت صناعية", swatch: dashboardTheme.palette.map.industrial },
-  { label: "فوسفوجيبس", swatch: dashboardTheme.palette.map.phosphogypsum, dots: true },
-  { label: "طرق", line: dashboardTheme.palette.map.road },
-  { label: "سكة", line: dashboardTheme.palette.map.rail },
-];
-
-const zoneTypeLabel: Record<Region["type"], string> = {
-  industrial: "صناعي",
-  urban: "عمراني",
-  coastal: "ساحلي",
-  agricultural: "فلاحي",
-  school: "مدارس",
+const mapLabelText: Partial<Record<string, LocalizedString>> = {
+  ghannouch: { ar: "غنوش", en: "Ghannouch", fr: "Ghannouch" },
+  "industrial-zone": { ar: "المنطقة الصناعية", en: "Industrial zone", fr: "Zone industrielle" },
+  bouchemma: { ar: "بوشمة", en: "Bouchemma", fr: "Bouchemma" },
+  jara: { ar: "جرّة", en: "Jara", fr: "Jara" },
+  chott: { ar: "شط السلام", en: "Chott Essalem", fr: "Chott Essalem" },
+  gabes: { ar: "قابس", en: "Gabès", fr: "Gabès" },
+  menzel: { ar: "منزل", en: "Menzel", fr: "Menzel" },
+  sidi: { ar: "سيدي بولبابة", en: "Sidi Boulbaba", fr: "Sidi Boulbaba" },
+  mtorrech: { ar: "مطرش", en: "Mtorrech", fr: "Mtorrech" },
+  teboulbou: { ar: "تبلبو", en: "Teboulbou", fr: "Teboulbou" },
+  "port-industrial": { ar: "الميناء الصناعي", en: "Industrial port", fr: "Port industriel" },
+  phospho: { ar: "مصب الفوسفوجيبس", en: "Phosphogypsum outlet", fr: "Rejet phosphogypse" },
+  "port-fishing": { ar: "ميناء الصيد", en: "Fishing port", fr: "Port de pêche" },
+  north: { ar: "الشمال", en: "North", fr: "Nord" },
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -151,6 +153,7 @@ export function GabesMap({
   selectedRegionId,
   onSelect,
 }: GabesMapProps) {
+  const { locale, t, tr } = useLocale();
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
 
@@ -161,7 +164,28 @@ export function GabesMap({
   const metrics = zoneMetrics(selectedRegion, indicators, prediction);
   const zoneAction = pickZoneAction(selectedRegion, actions);
   const priorityLabel =
-    zoneAction.priority === "immediate" ? "فوري" : "موصى";
+    zoneAction.priority === "immediate"
+      ? t("priority.immediate")
+      : t("priority.recommended");
+  const zoneTypeLabel: Record<Region["type"], string> = {
+    industrial: t("map.types.industrial"),
+    urban: t("map.types.urban"),
+    coastal: t("map.types.coastal"),
+    agricultural: t("map.types.agricultural"),
+    school: t("map.types.school"),
+  };
+  const mapLegend: MapLegendItem[] = [
+    { label: t("map.legendItems.urban"), swatch: dashboardTheme.palette.map.urban },
+    { label: t("map.legendItems.oasis"), swatch: dashboardTheme.palette.map.oasis },
+    { label: t("map.legendItems.industrial"), swatch: dashboardTheme.palette.map.industrial },
+    {
+      label: t("map.legendItems.phosphogypsum"),
+      swatch: dashboardTheme.palette.map.phosphogypsum,
+      dots: true,
+    },
+    { label: t("map.legendItems.roads"), line: dashboardTheme.palette.map.road },
+    { label: t("map.legendItems.rail"), line: dashboardTheme.palette.map.rail },
+  ];
 
   const windRad = ((prediction.windDirection - 90) * Math.PI) / 180;
   const plumeDistance = 44 + prediction.spreadKm * 7.5;
@@ -175,20 +199,20 @@ export function GabesMap({
     <section className="panel overflow-hidden">
       <div className="panel-header">
         <div>
-          <p className="panel-title">الخريطة المرجعية</p>
+          <p className="panel-title">{t("panels.map")}</p>
           <h2 className="mt-1 font-display text-lg text-ink-primary">
-            قابس
+            {t("panels.mapTitle")}
           </h2>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <span className="chip border border-white/10 bg-white/[0.04] text-ink-secondary">
-            رياح {prediction.windSpeed.toFixed(1)} م/ث
+            {t("header.wind")} {prediction.windSpeed.toFixed(1)} {t("map.windUnit")}
           </span>
           <span className="chip border border-white/10 bg-white/[0.04] text-ink-secondary">
-            انتشار {prediction.spreadKm.toFixed(1)} كم
+            {t("prediction.spread")} {prediction.spreadKm.toFixed(1)} {t("map.distanceUnit")}
           </span>
           <span className="chip border border-white/10 bg-white/[0.04] text-ink-secondary">
-            اتجاه {prediction.windDirection.toFixed(0)}°
+            {t("map.direction")} {prediction.windDirection.toFixed(0)}°
           </span>
         </div>
       </div>
@@ -220,7 +244,7 @@ export function GabesMap({
               className="mb-2 text-[0.74rem] font-semibold"
               style={{ color: dashboardTheme.palette.map.label }}
             >
-              مفتاح الخريطة
+              {t("map.legend")}
             </p>
             <div className="space-y-1.5">
               {mapLegend.map((item) => (
@@ -500,7 +524,7 @@ export function GabesMap({
                 className={label.tone === "major" ? "font-display" : ""}
                 opacity={label.tone === "water" ? 0.84 : 0.92}
               >
-                {label.text}
+                {mapLabelText[label.id]?.[locale] ?? label.text}
               </text>
             ))}
 
@@ -513,7 +537,7 @@ export function GabesMap({
               <line x1="0" y1="-8" x2="0" y2="2" stroke={dashboardTheme.palette.map.label} strokeWidth="2" />
               <line x1="38" y1="-8" x2="38" y2="2" stroke={dashboardTheme.palette.map.label} strokeWidth="2" />
               <text x="52" y="4" fill={dashboardTheme.palette.map.label} fontSize="12">
-                1 كم
+                1 {t("map.distanceUnit")}
               </text>
             </g>
 
@@ -545,7 +569,7 @@ export function GabesMap({
               fontSize="13"
               className="font-display"
             >
-              المصنع
+              {t("map.factory")}
             </text>
           </svg>
 
@@ -558,7 +582,7 @@ export function GabesMap({
               }}
             >
               <p className="font-display text-sm text-ink-primary">
-                {hoveredRegion.name}
+                {tr(hoveredRegion.name)}
               </p>
               <p className="mt-1 text-[0.72rem] text-ink-secondary">
                 {zoneTypeLabel[hoveredRegion.type]}
@@ -581,9 +605,9 @@ export function GabesMap({
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="panel-title">المنطقة المحددة</p>
+              <p className="panel-title">{t("map.selected")}</p>
               <h3 className="mt-1 font-display text-[1.35rem] text-ink-primary">
-                {selectedRegion.name}
+                {tr(selectedRegion.name)}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="chip border border-white/10 bg-white/5 text-ink-secondary">
@@ -591,7 +615,7 @@ export function GabesMap({
                 </span>
                 <span className="chip border border-white/10 bg-white/5 text-ink-secondary">
                   <span className="number text-ink-primary">
-                    {selectedRegion.distanceKm.toFixed(1)} كم
+                    {selectedRegion.distanceKm.toFixed(1)} {t("map.distanceUnit")}
                   </span>
                 </span>
               </div>
@@ -605,10 +629,10 @@ export function GabesMap({
 
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: "هواء", value: `${metrics.air}%` },
-              { label: "ماء", value: `${metrics.waterRisk}%` },
-              { label: "بعد 30 د", value: `${metrics.in30}%` },
-              { label: "بعد 60 د", value: `${metrics.in60}%` },
+              { label: t("map.metrics.air"), value: `${metrics.air}%` },
+              { label: t("map.metrics.water"), value: `${metrics.waterRisk}%` },
+              { label: t("map.metrics.in30"), value: `${metrics.in30}%` },
+              { label: t("map.metrics.in60"), value: `${metrics.in60}%` },
             ].map((item, index) => (
               <motion.div
                 key={item.label}
@@ -633,9 +657,9 @@ export function GabesMap({
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="panel-title">الإجراء المقترح</p>
+                <p className="panel-title">{t("map.recommendedAction")}</p>
                 <h4 className="mt-1 font-display text-base text-ink-primary">
-                  {zoneAction.title}
+                  {tr(zoneAction.title)}
                 </h4>
               </div>
               <StatusBadge
@@ -648,12 +672,14 @@ export function GabesMap({
             </div>
 
             <p className="mt-2 text-sm leading-6 text-ink-secondary">
-              {zoneAction.target}
+              {tr(zoneAction.target)}
             </p>
 
             <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-              <span className="text-ink-muted">زمن التنفيذ</span>
-              <span className="number text-brand">{zoneAction.etaMinutes} د</span>
+              <span className="text-ink-muted">{t("priority.eta")}</span>
+              <span className="number text-brand">
+                {zoneAction.etaMinutes} {t("time.minutes")}
+              </span>
             </div>
           </div>
         </motion.div>

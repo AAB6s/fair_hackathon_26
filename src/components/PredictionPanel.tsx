@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useLocale } from "../i18n/LocaleContext";
 import { dashboardTheme } from "../theme/dashboardTheme";
 import type { Prediction } from "../types";
 
@@ -17,6 +18,7 @@ function pointsToPath(points: Array<{ x: number; y: number }>): string {
 }
 
 export function PredictionPanel({ prediction }: PredictionPanelProps) {
+  const { t, tr } = useLocale();
   const merged = [...prediction.history, ...prediction.forecast.slice(1)];
   const values = merged.flatMap((point) => [
     point.value,
@@ -63,9 +65,9 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
     <section className="panel overflow-hidden">
       <div className="panel-header">
         <div>
-          <p className="panel-title">التوقع</p>
+          <p className="panel-title">{t("panels.forecast")}</p>
           <h2 className="mt-1 font-display text-lg text-ink-primary">
-            المسار القصير
+            {tr(prediction.metric)}
           </h2>
         </div>
         <span className="chip border border-brand/25 bg-brand/10 text-brand">
@@ -81,7 +83,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             transition={{ delay: 0.04, duration: 0.3 }}
             className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3"
           >
-            <p className="panel-title mb-1">30 د</p>
+            <p className="panel-title mb-1">30 {t("time.minutes")}</p>
             <p className="number text-2xl text-ink-primary">
               {value30.toFixed(0)}%
             </p>
@@ -92,7 +94,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             transition={{ delay: 0.08, duration: 0.3 }}
             className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3"
           >
-            <p className="panel-title mb-1">60 د</p>
+            <p className="panel-title mb-1">60 {t("time.minutes")}</p>
             <p className="number text-2xl text-ink-primary">
               {value60.toFixed(0)}%
             </p>
@@ -103,7 +105,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             transition={{ delay: 0.12, duration: 0.3 }}
             className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3"
           >
-            <p className="panel-title mb-1">الذروة</p>
+            <p className="panel-title mb-1">{t("prediction.peakIn")}</p>
             <p className="number text-2xl text-ink-primary">
               {prediction.peakValue.toFixed(0)}%
             </p>
@@ -114,11 +116,16 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             transition={{ delay: 0.16, duration: 0.3 }}
             className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3"
           >
-            <p className="panel-title mb-1">الانتشار</p>
+            <p className="panel-title mb-1">{t("prediction.spread")}</p>
             <p className="number text-2xl text-ink-primary">
-              {prediction.spreadKm.toFixed(1)} كم
+              {prediction.spreadKm.toFixed(1)} {t("map.distanceUnit")}
             </p>
           </motion.div>
+        </div>
+
+        <div className="rounded-[1rem] border border-white/8 bg-white/[0.035] px-3 py-2.5 text-sm leading-6 text-ink-secondary">
+          <span className="panel-title me-2">{t("prediction.rationale")}</span>
+          {tr(prediction.rationale)}
         </div>
 
         <div className="data-sweep rounded-[1.4rem] border border-white/8 bg-[linear-gradient(180deg,rgba(6,12,26,0.88),rgba(12,18,32,0.82))] p-3">
@@ -239,7 +246,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             />
 
             <text x="2" y="95" className="fill-white/45 font-display text-[5px]">
-              الآن
+              {t("time.now")}
             </text>
             <text x="90" y="95" className="fill-white/45 font-display text-[5px]">
               +60

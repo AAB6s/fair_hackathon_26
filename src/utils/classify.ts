@@ -1,3 +1,5 @@
+import type { LocalizedString } from "../i18n/types";
+import { STRINGS } from "../i18n/strings";
 import type { Indicator, Severity } from "../types";
 import { dashboardTheme } from "../theme/dashboardTheme";
 
@@ -41,6 +43,9 @@ export function severityBg(s: Severity): string {
     : `rgba(${dashboardTheme.palette.severity.normalRgb}, 0.12)`;
 }
 
-export function severityLabel(s: Severity): string {
-  return s === "danger" ? "خطر" : s === "warning" ? "تحذير" : "طبيعي";
+/** Returns the localized triplet — consumers pick the right field. */
+export function severityLabel(s: Severity): LocalizedString {
+  if (s === "danger") return STRINGS.status.danger;
+  if (s === "warning") return STRINGS.status.warning;
+  return STRINGS.status.normal;
 }

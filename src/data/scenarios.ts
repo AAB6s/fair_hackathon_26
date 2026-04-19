@@ -1,3 +1,5 @@
+import { STRINGS } from "../i18n/strings";
+import { loc, same, type Locale, type LocalizedString } from "../i18n/types";
 import type {
   Action,
   Advisory,
@@ -17,9 +19,9 @@ import { aggregateSeverity, classify } from "../utils/classify";
 type IndicatorKey = Indicator["key"];
 
 interface ScenarioDescriptor {
-  label: string;
-  strapline: string;
-  summary: string;
+  label: LocalizedString;
+  strapline: LocalizedString;
+  summary: LocalizedString;
 }
 
 interface IndicatorProfile {
@@ -46,53 +48,67 @@ const indicatorBlueprints: Record<
 > = {
   so2: {
     key: "so2",
-    label: "غاز SO₂",
+    label: loc("غاز SO₂", "SO₂ gas", "Gaz SO₂"),
     unit: "ppm",
     min: 0,
     max: 120,
     warningAt: 55,
     dangerAt: 72,
-    description: "قياس مستمر للغازات عند مدخنة معالجة الفوسفات.",
+    description: loc(
+      "قياس مستمر للغازات عند مدخنة معالجة الفوسفات.",
+      "Continuous gas reading at the phosphate stack.",
+      "Mesure continue des gaz à la cheminée du traitement de phosphate.",
+    ),
   },
   phosphate: {
     key: "phosphate",
-    label: "رذاذ الحمض والفوسفات",
-    unit: "ملغ/م3",
+    label: loc("رذاذ الحمض والفوسفات", "Acid & phosphate mist", "Brouillard acide & phosphate"),
+    unit: "mg/m³",
     min: 0,
     max: 100,
     warningAt: 48,
     dangerAt: 68,
-    description: "رذاذ حمضي وجزيئات فوسفات قرب مسار العادم.",
+    description: loc(
+      "رذاذ حمضي وجزيئات فوسفات قرب مسار العادم.",
+      "Acid mist and phosphate particles along the exhaust path.",
+      "Brouillard acide et particules de phosphate le long de l'évacuation.",
+    ),
   },
   ph: {
     key: "ph",
-    label: "حموضة التصريف",
+    label: loc("حموضة التصريف", "Discharge pH", "pH de rejet"),
     unit: "pH",
     min: 4.5,
     max: 8.5,
     warningAt: 6.5,
     dangerAt: 5.8,
     invert: true,
-    description: "درجة الحموضة في حوض المعادلة قبل التصريف إلى البحر.",
+    description: loc(
+      "درجة الحموضة في حوض المعادلة قبل التصريف إلى البحر.",
+      "pH at the neutralization basin before sea discharge.",
+      "pH au bassin de neutralisation avant rejet en mer.",
+    ),
   },
   water: {
     key: "water",
-    label: "تلوث مياه البحر",
+    label: loc("تلوث مياه البحر", "Seawater contamination", "Contamination de l'eau de mer"),
     unit: "ppm",
     min: 0,
     max: 100,
     warningAt: 40,
     dangerAt: 60,
-    description: "مؤشر مركب يجمع المواد الصلبة والحموضة والعكارة.",
+    description: loc(
+      "مؤشر مركب يجمع المواد الصلبة والحموضة والعكارة.",
+      "Composite index of solids, acidity and turbidity.",
+      "Indice composite : solides, acidité et turbidité.",
+    ),
   },
 };
 
-const regionBlueprints: Array<
-  Omit<Region, "pollution" | "severity">
-> = [
+const regionBlueprints: Array<Omit<Region, "pollution" | "severity">> = [
   {
     id: "industrial-core",
-    name: "المجمع الصناعي",
+    name: loc("المجمع الصناعي", "Industrial complex", "Complexe industriel"),
     population: 7400,
     path: "M118 168 L266 154 L302 224 L248 310 L126 286 L92 220 Z",
     centroid: [198, 228],
@@ -101,7 +117,7 @@ const regionBlueprints: Array<
   },
   {
     id: "ghannouch-north",
-    name: "غنوش الشمالية",
+    name: loc("غنوش الشمالية", "North Ghannouch", "Ghannouch Nord"),
     population: 18400,
     path: "M266 154 L410 144 L448 216 L302 224 Z",
     centroid: [360, 184],
@@ -110,7 +126,7 @@ const regionBlueprints: Array<
   },
   {
     id: "school-belt",
-    name: "الحزام المدرسي",
+    name: loc("الحزام المدرسي", "School belt", "Ceinture scolaire"),
     population: 9600,
     path: "M410 144 L554 140 L566 220 L448 216 Z",
     centroid: [492, 182],
@@ -119,7 +135,7 @@ const regionBlueprints: Array<
   },
   {
     id: "agri-basin",
-    name: "الحوض الفلاحي",
+    name: loc("الحوض الفلاحي", "Agricultural basin", "Bassin agricole"),
     population: 12600,
     path: "M126 286 L248 310 L246 404 L120 422 L82 340 Z",
     centroid: [176, 356],
@@ -128,7 +144,7 @@ const regionBlueprints: Array<
   },
   {
     id: "gabes-central",
-    name: "وسط قابس",
+    name: loc("وسط قابس", "Central Gabès", "Gabès Centre"),
     population: 26300,
     path: "M248 310 L392 296 L402 394 L246 404 Z",
     centroid: [324, 352],
@@ -137,7 +153,7 @@ const regionBlueprints: Array<
   },
   {
     id: "canal-mouth",
-    name: "مصب القنال",
+    name: loc("مصب القنال", "Canal mouth", "Embouchure du canal"),
     population: 11800,
     path: "M302 224 L448 216 L392 296 L248 310 Z",
     centroid: [344, 256],
@@ -146,7 +162,7 @@ const regionBlueprints: Array<
   },
   {
     id: "south-coast",
-    name: "الساحل الجنوبي",
+    name: loc("الساحل الجنوبي", "South coast", "Côte Sud"),
     population: 15200,
     path: "M448 216 L566 220 L596 372 L402 394 L392 296 Z",
     centroid: [500, 306],
@@ -158,7 +174,7 @@ const regionBlueprints: Array<
 const unitBlueprints: FactoryUnit[] = [
   {
     id: "reactor-r02",
-    name: "خط التفاعل R-02",
+    name: loc("خط التفاعل R-02", "Reactor line R-02", "Ligne réacteur R-02"),
     status: "online",
     load: 78,
     efficiency: 87,
@@ -166,7 +182,7 @@ const unitBlueprints: FactoryUnit[] = [
   },
   {
     id: "reactor-r03",
-    name: "خط التفاعل R-03",
+    name: loc("خط التفاعل R-03", "Reactor line R-03", "Ligne réacteur R-03"),
     status: "online",
     load: 72,
     efficiency: 83,
@@ -174,7 +190,7 @@ const unitBlueprints: FactoryUnit[] = [
   },
   {
     id: "scrubber-s01",
-    name: "غاسلة الغاز S-01",
+    name: loc("غاسلة الغاز S-01", "Gas scrubber S-01", "Laveur de gaz S-01"),
     status: "online",
     load: 76,
     efficiency: 91,
@@ -182,7 +198,7 @@ const unitBlueprints: FactoryUnit[] = [
   },
   {
     id: "filter-f09",
-    name: "المرشح الجاف F-09",
+    name: loc("المرشح الجاف F-09", "Dry filter F-09", "Filtre sec F-09"),
     status: "online",
     load: 68,
     efficiency: 88,
@@ -190,7 +206,7 @@ const unitBlueprints: FactoryUnit[] = [
   },
   {
     id: "pump-p14",
-    name: "مضخة التصريف P-14",
+    name: loc("مضخة التصريف P-14", "Discharge pump P-14", "Pompe de rejet P-14"),
     status: "online",
     load: 64,
     efficiency: 90,
@@ -198,7 +214,7 @@ const unitBlueprints: FactoryUnit[] = [
   },
   {
     id: "tank-a1",
-    name: "خزان الحمض A1",
+    name: loc("خزان الحمض A1", "Acid tank A1", "Réservoir d'acide A1"),
     status: "online",
     load: 70,
     efficiency: 85,
@@ -215,24 +231,40 @@ export const scenarioOrder: Scenario[] = [
 
 export const scenarioDescriptors: Record<Scenario, ScenarioDescriptor> = {
   normal: {
-    label: "عادي",
-    strapline: "تشغيل مستقر",
-    summary: "كل وحدات التحكم شغالة، والتلوث البحري مازال داخل المجال المتوقع.",
+    label: STRINGS.scenario.label.normal,
+    strapline: loc("تشغيل مستقر", "Stable operation", "Fonctionnement stable"),
+    summary: loc(
+      "كل وحدات التحكم شغالة، والتلوث البحري مازال داخل المجال المتوقع.",
+      "All control units online; marine pollution stays within expected range.",
+      "Toutes les unités opérationnelles ; pollution marine dans la plage attendue.",
+    ),
   },
   leak: {
-    label: "تسرب",
-    strapline: "خلل في خط التحويل",
-    summary: "ارتفاع مفاجئ في SO₂ والرذاذ الحمضي حول خط التحويل مع تأثير مباشر على المنطقة القريبة.",
+    label: STRINGS.scenario.label.leak,
+    strapline: loc("خلل في خط التحويل", "Diversion line fault", "Défaut sur la ligne de dérivation"),
+    summary: loc(
+      "ارتفاع مفاجئ في SO₂ والرذاذ الحمضي حول خط التحويل مع تأثير مباشر على المنطقة القريبة.",
+      "Sudden SO₂ and acid-mist surge around the diversion line, direct impact nearby.",
+      "Pic soudain de SO₂ et de brouillard acide autour de la ligne, impact direct à proximité.",
+    ),
   },
   high_pollution: {
-    label: "تلوث مرتفع",
-    strapline: "سحابة تلوث مستمرة",
-    summary: "الانبعاثات المرتفعة مع الرياح نحو الداخل تدفع التلوث إلى المناطق السكنية.",
+    label: STRINGS.scenario.label.high_pollution,
+    strapline: loc("سحابة تلوث مستمرة", "Sustained pollution plume", "Panache de pollution soutenu"),
+    summary: loc(
+      "الانبعاثات المرتفعة مع الرياح نحو الداخل تدفع التلوث إلى المناطق السكنية.",
+      "Elevated emissions with onshore wind push pollution into residential zones.",
+      "Émissions élevées et vent terrestre poussent la pollution vers les zones habitées.",
+    ),
   },
   scrubber_failure: {
-    label: "تعطل الغاسلة",
-    strapline: "ضعف غسل الغاز",
-    summary: "كفاءة الغاسلة تنهار والمدخنة تبدأ في إطلاق سحابة أشد من المعتاد.",
+    label: STRINGS.scenario.label.scrubber_failure,
+    strapline: loc("ضعف غسل الغاز", "Weak gas-washing", "Lavage de gaz affaibli"),
+    summary: loc(
+      "كفاءة الغاسلة تنهار والمدخنة تبدأ في إطلاق سحابة أشد من المعتاد.",
+      "Scrubber efficiency collapses; the stack releases an unusually thick plume.",
+      "L'efficacité du laveur s'effondre, la cheminée libère un panache plus dense.",
+    ),
   },
 };
 
@@ -386,11 +418,11 @@ function round(value: number, digits = 1): number {
   return Math.round(value * factor) / factor;
 }
 
-function unitStatusLabel(status: FactoryUnit["status"]): string {
-  if (status === "offline") return "متوقفة";
-  if (status === "degraded") return "متراجعة";
-  if (status === "stopped") return "موقوفة";
-  return "شغالة";
+function unitStatusLocalized(status: FactoryUnit["status"]): LocalizedString {
+  if (status === "offline") return loc("متوقفة", "Offline", "Hors service");
+  if (status === "degraded") return loc("متراجعة", "Degraded", "Dégradée");
+  if (status === "stopped") return loc("موقوفة", "Stopped", "Arrêtée");
+  return loc("شغالة", "Online", "En service");
 }
 
 function wave(seed: number, step: number): number {
@@ -516,6 +548,16 @@ function buildUnits(scenario: Scenario, step: number): FactoryUnit[] {
   });
 }
 
+function joinRegionNames(names: LocalizedString[]): LocalizedString {
+  if (names.length === 0)
+    return loc("محيط المصنع", "factory perimeter", "périmètre de l'usine");
+  return {
+    ar: names.map((n) => n.ar).join("، "),
+    en: names.map((n) => n.en).join(", "),
+    fr: names.map((n) => n.fr).join(", "),
+  };
+}
+
 function buildPrediction(
   scenario: Scenario,
   step: number,
@@ -535,10 +577,7 @@ function buildPrediction(
   const history: PredictionPoint[] = Array.from({ length: 7 }, (_, index) => {
     const sample = so2.trend[Math.floor((index / 6) * (so2.trend.length - 1))];
     const value = round(sample + profile.windSpeed * 0.9 - scrubber.efficiency * 0.02, 1);
-    return {
-      t: -60 + index * 10,
-      value,
-    };
+    return { t: -60 + index * 10, value };
   });
 
   const forecast: PredictionPoint[] = Array.from({ length: 7 }, (_, index) => {
@@ -568,16 +607,23 @@ function buildPrediction(
   });
 
   const peakPoint = forecast.reduce((peak, point) => (point.value > peak.value ? point : peak), forecast[0]);
-  const topZones =
-    impactedZones.length > 0 ? impactedZones.join("، ") : "محيط المصنع";
+  const topZones = joinRegionNames(impactedZones);
+  const dir = compassLocalized(profile.windDirection);
+  const speed = round(profile.windSpeed, 1);
+
+  const rationale: LocalizedString = {
+    ar: `رياح بسرعة ${speed} م/ث نحو ${dir.ar} تدفع السحابة إلى ${topZones.ar}. كفاءة الغاسلة ${scrubber.efficiency}%، لذلك تبقى الدقائق 30 إلى 60 القادمة مرتبطة باستقرار الغسل والتحكم في الخط.`,
+    en: `Wind at ${speed} m/s from the ${dir.en} pushes the plume toward ${topZones.en}. Scrubber efficiency is ${scrubber.efficiency}%, so the next 30–60 minutes hinge on stable washing and line control.`,
+    fr: `Vent à ${speed} m/s en provenance du ${dir.fr} pousse le panache vers ${topZones.fr}. Efficacité du laveur ${scrubber.efficiency}%, donc les 30–60 prochaines minutes dépendent d'un lavage stable et du contrôle de la ligne.`,
+  };
 
   return {
-    metric: "سحابة SO₂ باتجاه الرياح",
+    metric: loc("سحابة SO₂ باتجاه الرياح", "Down-wind SO₂ plume", "Panache SO₂ sous le vent"),
     unit: "ppm",
     history,
     forecast,
     confidence: scenario === "normal" ? 0.91 : scenario === "high_pollution" ? 0.82 : 0.76,
-    rationale: `رياح بسرعة ${round(profile.windSpeed, 1)} م/ث نحو ${compassFromDegrees(profile.windDirection)} تدفع السحابة إلى ${topZones}. كفاءة الغاسلة ${scrubber.efficiency}%، لذلك تبقى الدقائق 30 إلى 60 القادمة مرتبطة باستقرار الغسل والتحكم في الخط.`,
+    rationale,
     peakInMinutes: peakPoint.t,
     peakValue: peakPoint.value,
     windDirection: profile.windDirection,
@@ -611,9 +657,13 @@ function buildAlerts(
       ts: now - 2 * 60_000,
       type: "threshold",
       severity: classify(so2),
-      title: "تجاوز حد SO₂",
-      detail: `تم تسجيل ${so2.value.toFixed(1)} ppm عند المدخنة الرئيسية، فوق هامش التحذير ${so2.warningAt} ppm.`,
-      source: "منظومة القياس المستمر / القناة الشمالية",
+      title: loc("تجاوز حد SO₂", "SO₂ threshold exceeded", "Seuil SO₂ dépassé"),
+      detail: {
+        ar: `تم تسجيل ${so2.value.toFixed(1)} ppm عند المدخنة الرئيسية، فوق هامش التحذير ${so2.warningAt} ppm.`,
+        en: `${so2.value.toFixed(1)} ppm recorded at the main stack, above the warning margin of ${so2.warningAt} ppm.`,
+        fr: `${so2.value.toFixed(1)} ppm relevés à la cheminée principale, au-dessus du seuil de ${so2.warningAt} ppm.`,
+      },
+      source: loc("منظومة القياس المستمر / القناة الشمالية", "CEMS / North channel", "SACS / canal nord"),
     });
   }
 
@@ -623,9 +673,13 @@ function buildAlerts(
       ts: now - 70_000,
       type: "leak",
       severity: "danger",
-      title: "رصد نمط تسرب",
-      detail: `ارتفع SO₂ بمقدار ${so2Delta.toFixed(1)} ppm في دورة واحدة وارتفع الرذاذ الحمضي ${phosphateDelta.toFixed(1)} ملغ/م3، وهذا يتوافق مع تسرب في خط التحويل.`,
-      source: "محرك ربط بيانات العملية",
+      title: loc("رصد نمط تسرب", "Leak pattern detected", "Schéma de fuite détecté"),
+      detail: {
+        ar: `ارتفع SO₂ بمقدار ${so2Delta.toFixed(1)} ppm في دورة واحدة وارتفع الرذاذ الحمضي ${phosphateDelta.toFixed(1)} ملغ/م3، وهذا يتوافق مع تسرب في خط التحويل.`,
+        en: `SO₂ rose ${so2Delta.toFixed(1)} ppm in a single cycle and acid mist rose ${phosphateDelta.toFixed(1)} mg/m³ — consistent with a diversion-line leak.`,
+        fr: `SO₂ a augmenté de ${so2Delta.toFixed(1)} ppm en un cycle et le brouillard acide de ${phosphateDelta.toFixed(1)} mg/m³ — compatible avec une fuite sur la ligne de dérivation.`,
+      },
+      source: loc("محرك ربط بيانات العملية", "Process-data correlation engine", "Moteur de corrélation procédé"),
     });
   }
 
@@ -635,9 +689,16 @@ function buildAlerts(
       ts: now - 4 * 60_000,
       type: "system",
       severity: scrubber.status === "offline" ? "danger" : "warning",
-      title: "تراجع أداء الغاسلة",
-      detail: `غاسلة الغاز S-01 في حالة ${unitStatusLabel(scrubber.status)} بكفاءة ${scrubber.efficiency}%. غسل الغاز لم يعد كافيا للسيطرة على السحابة المتوقعة.`,
-      source: "تشخيص المنظومة",
+      title: loc("تراجع أداء الغاسلة", "Scrubber performance degraded", "Performance laveur dégradée"),
+      detail: (() => {
+        const status = unitStatusLocalized(scrubber.status);
+        return {
+          ar: `غاسلة الغاز S-01 في حالة ${status.ar} بكفاءة ${scrubber.efficiency}%. غسل الغاز لم يعد كافيا للسيطرة على السحابة المتوقعة.`,
+          en: `Scrubber S-01 is ${status.en.toLowerCase()} at ${scrubber.efficiency}% efficiency. Gas washing is no longer enough to contain the forecast plume.`,
+          fr: `Laveur S-01 ${status.fr.toLowerCase()} à ${scrubber.efficiency}% d'efficacité. Le lavage ne suffit plus à contenir le panache prévu.`,
+        };
+      })(),
+      source: loc("تشخيص المنظومة", "System diagnostic", "Diagnostic système"),
     });
   }
 
@@ -647,9 +708,17 @@ function buildAlerts(
       ts: now - 6 * 60_000,
       type: "spike",
       severity: "danger",
-      title: "انتشار تلوث مرتفع نحو المناطق السكنية",
-      detail: `${dangerZones.length} مناطق أصبحت في مستوى خطر، والنموذج يتوقع ذروة ${prediction.peakValue.toFixed(1)} ppm خلال ${prediction.peakInMinutes} دقيقة.`,
-      source: "توقع قصير المدى",
+      title: loc(
+        "انتشار تلوث مرتفع نحو المناطق السكنية",
+        "High pollution spreading toward residential zones",
+        "Pollution élevée vers les zones habitées",
+      ),
+      detail: {
+        ar: `${dangerZones.length} مناطق أصبحت في مستوى خطر، والنموذج يتوقع ذروة ${prediction.peakValue.toFixed(1)} ppm خلال ${prediction.peakInMinutes} دقيقة.`,
+        en: `${dangerZones.length} zones now at danger level; model forecasts a peak of ${prediction.peakValue.toFixed(1)} ppm within ${prediction.peakInMinutes} min.`,
+        fr: `${dangerZones.length} zones en danger ; le modèle prévoit un pic de ${prediction.peakValue.toFixed(1)} ppm dans ${prediction.peakInMinutes} min.`,
+      },
+      source: loc("توقع قصير المدى", "Short-term forecast", "Prévision court terme"),
     });
   }
 
@@ -659,9 +728,17 @@ function buildAlerts(
       ts: now - 8 * 60_000,
       type: "threshold",
       severity: aggregateSeverity([classify(ph), classify(water)]),
-      title: "اضطراب في كيمياء التصريف",
-      detail: `حموضة التصريف ${ph.value.toFixed(2)} ومؤشر تلوث البحر ${water.value.toFixed(1)} ppm.`,
-      source: "حوض المعادلة / مجس الشاطئ",
+      title: loc(
+        "اضطراب في كيمياء التصريف",
+        "Discharge chemistry disturbance",
+        "Perturbation de la chimie du rejet",
+      ),
+      detail: {
+        ar: `حموضة التصريف ${ph.value.toFixed(2)} ومؤشر تلوث البحر ${water.value.toFixed(1)} ppm.`,
+        en: `Discharge pH ${ph.value.toFixed(2)} and seawater pollution index ${water.value.toFixed(1)} ppm.`,
+        fr: `pH de rejet ${ph.value.toFixed(2)} et indice de pollution marine ${water.value.toFixed(1)} ppm.`,
+      },
+      source: loc("حوض المعادلة / مجس الشاطئ", "Neutralization basin / shore probe", "Bassin neutralisation / sonde côtière"),
     });
   }
 
@@ -687,73 +764,153 @@ function buildActions(
   if (scenario === "leak" || so2.trend.at(-1)! - so2.trend.at(-2)! >= 8) {
     actions.push({
       id: "action-stop-line",
-      title: "إيقاف الآلة وعزل خط التحويل A3",
-      reason: `SO₂ بلغ ${so2.value.toFixed(1)} ppm مع ارتفاع مفاجئ واضح. إيقاف هذا الخط يعزل المصدر المحتمل للتسرب داخل المجمع الصناعي.`,
-      target: "خط التحويل A3 / مضخة P-14",
+      title: loc(
+        "إيقاف الآلة وعزل خط التحويل A3",
+        "Stop machine and isolate diversion line A3",
+        "Arrêter et isoler la ligne de dérivation A3",
+      ),
+      reason: {
+        ar: `SO₂ بلغ ${so2.value.toFixed(1)} ppm مع ارتفاع مفاجئ واضح. إيقاف هذا الخط يعزل المصدر المحتمل للتسرب داخل المجمع الصناعي.`,
+        en: `SO₂ reached ${so2.value.toFixed(1)} ppm with a clear sudden surge. Shutting this line isolates the likely leak source inside the complex.`,
+        fr: `SO₂ a atteint ${so2.value.toFixed(1)} ppm avec un pic net. Arrêter cette ligne isole la source probable de fuite dans le complexe.`,
+      },
+      target: loc("خط التحويل A3 / مضخة P-14", "Diversion line A3 / pump P-14", "Ligne A3 / pompe P-14"),
       priority: "immediate",
       category: "stop",
       etaMinutes: 4,
-      impact: "يوقف التسرب من المصدر ويمنع تضخم السحابة خلال الدقائق القادمة.",
+      impact: loc(
+        "يوقف التسرب من المصدر ويمنع تضخم السحابة خلال الدقائق القادمة.",
+        "Cuts the leak at its source and prevents plume growth in the next minutes.",
+        "Coupe la fuite à la source et empêche la croissance du panache.",
+      ),
     });
   } else if (scenario === "scrubber_failure") {
     actions.push({
       id: "action-stop-reactor",
-      title: "إيقاف الآلة وتعليق خط التفاعل R-02",
-      reason: `غاسلة الغاز S-01 متوقفة وكفاءة الإزالة ${scrubber.efficiency}%. إبقاء R-02 شغالا يحافظ على حمل غازي أعلى من المجال المقبول.`,
-      target: "خط التفاعل R-02",
+      title: loc(
+        "إيقاف الآلة وتعليق خط التفاعل R-02",
+        "Stop machine and suspend reactor line R-02",
+        "Arrêter et suspendre la ligne réacteur R-02",
+      ),
+      reason: {
+        ar: `غاسلة الغاز S-01 متوقفة وكفاءة الإزالة ${scrubber.efficiency}%. إبقاء R-02 شغالا يحافظ على حمل غازي أعلى من المجال المقبول.`,
+        en: `Scrubber S-01 is offline at ${scrubber.efficiency}% efficiency. Keeping R-02 running pushes the gas load above the acceptable range.`,
+        fr: `Laveur S-01 hors service à ${scrubber.efficiency}% d'efficacité. Maintenir R-02 maintient une charge gazeuse hors plage acceptable.`,
+      },
+      target: loc("خط التفاعل R-02", "Reactor line R-02", "Ligne réacteur R-02"),
       priority: "immediate",
       category: "stop",
       etaMinutes: 6,
-      impact: "يخفض الحمل على المدخنة إلى حين استرجاع أداء الغاسلة.",
+      impact: loc(
+        "يخفض الحمل على المدخنة إلى حين استرجاع أداء الغاسلة.",
+        "Reduces stack load until scrubber performance is restored.",
+        "Réduit la charge cheminée le temps de restaurer le laveur.",
+      ),
     });
   }
 
   if (scrubber.efficiency <= 75 || classify(so2) === "danger") {
     actions.push({
       id: "action-scrubber",
-      title: "تشغيل الغاسلة الاحتياطية",
-      reason: `كفاءة غسل الغاز لا تتجاوز ${scrubber.efficiency}% بينما التوقع يشير إلى ذروة ${prediction.peakValue.toFixed(1)} ppm خلال ${prediction.peakInMinutes} دقيقة.`,
-      target: "غاسلة الغاز S-01 / الدارة الاحتياطية",
+      title: loc(
+        "تشغيل الغاسلة الاحتياطية",
+        "Activate the backup scrubber",
+        "Activer le laveur de secours",
+      ),
+      reason: {
+        ar: `كفاءة غسل الغاز لا تتجاوز ${scrubber.efficiency}% بينما التوقع يشير إلى ذروة ${prediction.peakValue.toFixed(1)} ppm خلال ${prediction.peakInMinutes} دقيقة.`,
+        en: `Gas-washing efficiency only ${scrubber.efficiency}% while the forecast peaks at ${prediction.peakValue.toFixed(1)} ppm within ${prediction.peakInMinutes} min.`,
+        fr: `Efficacité de lavage à ${scrubber.efficiency}% alors que le pic prévu est ${prediction.peakValue.toFixed(1)} ppm dans ${prediction.peakInMinutes} min.`,
+      },
+      target: loc(
+        "غاسلة الغاز S-01 / الدارة الاحتياطية",
+        "Scrubber S-01 / backup loop",
+        "Laveur S-01 / boucle de secours",
+      ),
       priority: "immediate",
       category: "scrubber",
       etaMinutes: 8,
-      impact: "يخفض تركيز SO₂ قبل وصول السحابة إلى المناطق السكنية الساحلية.",
+      impact: loc(
+        "يخفض تركيز SO₂ قبل وصول السحابة إلى المناطق السكنية الساحلية.",
+        "Cuts SO₂ before the plume reaches coastal residential zones.",
+        "Réduit le SO₂ avant que le panache n'atteigne les zones côtières.",
+      ),
     });
   }
 
   if (classify(water) !== "normal" || classify(ph) !== "normal") {
     actions.push({
       id: "action-carbon",
-      title: "إضافة فحم نشط إلى حوض المعالجة",
-      reason: `تلوث المياه بلغ ${water.value.toFixed(1)} ppm وحموضة التصريف ${ph.value.toFixed(2)}. إضافة الفحم مع المعادلة تحد من أثر التصريف البحري أثناء استقرار العملية.`,
-      target: "حوض المعالجة البحري B-02",
+      title: loc(
+        "إضافة فحم نشط إلى حوض المعالجة",
+        "Add activated carbon to the treatment basin",
+        "Ajouter du charbon actif au bassin",
+      ),
+      reason: {
+        ar: `تلوث المياه بلغ ${water.value.toFixed(1)} ppm وحموضة التصريف ${ph.value.toFixed(2)}. إضافة الفحم مع المعادلة تحد من أثر التصريف البحري أثناء استقرار العملية.`,
+        en: `Water pollution at ${water.value.toFixed(1)} ppm and discharge pH ${ph.value.toFixed(2)}. Adding carbon with neutralization limits marine impact while the process stabilizes.`,
+        fr: `Pollution eau ${water.value.toFixed(1)} ppm et pH de rejet ${ph.value.toFixed(2)}. L'ajout de charbon limite l'impact marin pendant la stabilisation.`,
+      },
+      target: loc("حوض المعالجة البحري B-02", "Marine treatment basin B-02", "Bassin marin B-02"),
       priority: classify(water) === "danger" ? "immediate" : "recommended",
       category: "carbon",
       etaMinutes: 12,
-      impact: "يمتص بقايا الأحماض ويخفض التلوث المتجه إلى القنال البحري.",
+      impact: loc(
+        "يمتص بقايا الأحماض ويخفض التلوث المتجه إلى القنال البحري.",
+        "Absorbs residual acids and lowers pollution heading to the sea canal.",
+        "Absorbe les acides résiduels et réduit la pollution vers le canal marin.",
+      ),
     });
   }
 
   actions.push({
     id: "action-adjust",
-    title: "تعديل التشغيل وخفض تغذية الحمض",
-    reason: `رذاذ الفوسفات وصل إلى ${phosphate.value.toFixed(1)} ملغ/م3 والمنطقة ${topRegion.name} بلغت ${topRegion.pollution}%. خفض التغذية وإعادة موازنة السحب يساعدان على تهدئة المنحنى خلال 30 دقيقة القادمة.`,
-    target: "خطوط التفاعل / مراوح السحب",
+    title: loc(
+      "تعديل التشغيل وخفض تغذية الحمض",
+      "Tune operation and lower acid feed",
+      "Ajuster l'exploitation et baisser l'alimentation acide",
+    ),
+    reason: {
+      ar: `رذاذ الفوسفات وصل إلى ${phosphate.value.toFixed(1)} ملغ/م3 والمنطقة ${topRegion.name.ar} بلغت ${topRegion.pollution}%. خفض التغذية وإعادة موازنة السحب يساعدان على تهدئة المنحنى خلال 30 دقيقة القادمة.`,
+      en: `Phosphate mist hit ${phosphate.value.toFixed(1)} mg/m³ and zone ${topRegion.name.en} reached ${topRegion.pollution}%. Reducing feed and rebalancing draft will calm the curve within 30 min.`,
+      fr: `Brouillard de phosphate à ${phosphate.value.toFixed(1)} mg/m³ et zone ${topRegion.name.fr} à ${topRegion.pollution}%. Réduire l'alimentation et rééquilibrer le tirage apaisera la courbe en 30 min.`,
+    },
+    target: loc("خطوط التفاعل / مراوح السحب", "Reactor lines / draft fans", "Lignes réacteur / ventilateurs"),
     priority: scenario === "normal" ? "recommended" : "immediate",
     category: "adjust",
     etaMinutes: 10,
-    impact: "يقلل تشكل الرذاذ الثانوي ويمنح وقتا لاسترجاع أداء الغاسلة.",
+    impact: loc(
+      "يقلل تشكل الرذاذ الثانوي ويمنح وقتا لاسترجاع أداء الغاسلة.",
+      "Reduces secondary mist and buys time for scrubber recovery.",
+      "Réduit le brouillard secondaire et laisse le temps de restaurer le laveur.",
+    ),
   });
 
   actions.push({
     id: "action-public",
-    title: `حماية المنطقة المعرضة في ${topRegion.name}`,
-    reason: `${topRegion.name} هي الأعلى تلوثا بنسبة ${topRegion.pollution}% وتقع مباشرة في اتجاه الرياح بسرعة ${prediction.windSpeed.toFixed(1)} م/ث.`,
-    target: `${topRegion.name} / المحيط السكني والساحلي`,
+    title: {
+      ar: `حماية المنطقة المعرضة في ${topRegion.name.ar}`,
+      en: `Protect the exposed area in ${topRegion.name.en}`,
+      fr: `Protéger la zone exposée à ${topRegion.name.fr}`,
+    },
+    reason: {
+      ar: `${topRegion.name.ar} هي الأعلى تلوثا بنسبة ${topRegion.pollution}% وتقع مباشرة في اتجاه الرياح بسرعة ${prediction.windSpeed.toFixed(1)} م/ث.`,
+      en: `${topRegion.name.en} is the most polluted at ${topRegion.pollution}% and sits directly downwind at ${prediction.windSpeed.toFixed(1)} m/s.`,
+      fr: `${topRegion.name.fr} est la plus polluée (${topRegion.pollution}%) et se trouve directement sous le vent (${prediction.windSpeed.toFixed(1)} m/s).`,
+    },
+    target: {
+      ar: `${topRegion.name.ar} / المحيط السكني والساحلي`,
+      en: `${topRegion.name.en} / residential & coastal perimeter`,
+      fr: `${topRegion.name.fr} / périmètre résidentiel & côtier`,
+    },
     priority: topRegion.severity === "danger" ? "immediate" : "recommended",
     category: topRegion.type === "industrial" ? "monitor" : "evacuate",
     etaMinutes: 15,
-    impact: "يخفض تعرض الأهالي إلى حين دخول إجراءات التحكم والمعادلة حيز التنفيذ.",
+    impact: loc(
+      "يخفض تعرض الأهالي إلى حين دخول إجراءات التحكم والمعادلة حيز التنفيذ.",
+      "Reduces resident exposure until control & neutralization measures take effect.",
+      "Réduit l'exposition des habitants en attendant l'effet des mesures de contrôle.",
+    ),
   });
 
   return actions;
@@ -769,31 +926,68 @@ function buildAdvisories(
   const schoolRegion = regions.find((region) => region.type === "school")!;
   const coastalRegion = regions.find((region) => region.id === "south-coast")!;
   const urbanRegion = regions.find((region) => region.id === "ghannouch-north")!;
+  const dir = compassLocalized(prediction.windDirection);
 
   return [
     {
       audience: "residents",
       level: urbanRegion.severity,
-      message: `على السكان في ${urbanRegion.name} تقليل البقاء في الخارج. السحابة تتحرك نحو ${compassFromDegrees(prediction.windDirection)} وستبقى مرتفعة خلال الساعة القادمة.`,
-      actions: ["إغلاق النوافذ وفتحات السطح", "تأجيل الأشغال الخارجية قرب الساحل"],
+      message: {
+        ar: `على السكان في ${urbanRegion.name.ar} تقليل البقاء في الخارج. السحابة تتحرك نحو ${dir.ar} وستبقى مرتفعة خلال الساعة القادمة.`,
+        en: `Residents in ${urbanRegion.name.en} should limit time outdoors. The plume is drifting ${dir.en} and will stay elevated for the next hour.`,
+        fr: `Habitants de ${urbanRegion.name.fr} : limitez le temps en extérieur. Le panache dérive vers le ${dir.fr} et restera élevé l'heure prochaine.`,
+      },
+      actions: [
+        loc("إغلاق النوافذ وفتحات السطح", "Close windows and roof vents", "Fermer fenêtres et bouches de toit"),
+        loc("تأجيل الأشغال الخارجية قرب الساحل", "Postpone outdoor work near the coast", "Reporter les travaux extérieurs côtiers"),
+      ],
     },
     {
       audience: "fishermen",
       level: aggregateSeverity([coastalRegion.severity, classify(water)]),
-      message: `على الصيادين قرب ${coastalRegion.name} تجنب المناطق المحاذية للقنال إلى أن تعود كيمياء الحوض إلى المستوى الطبيعي.`,
-      actions: ["تأجيل الخروج من مصب القنال", "تجنب جمع الصدفيات قرب سحابة التصريف"],
+      message: {
+        ar: `على الصيادين قرب ${coastalRegion.name.ar} تجنب المناطق المحاذية للقنال إلى أن تعود كيمياء الحوض إلى المستوى الطبيعي.`,
+        en: `Fishermen near ${coastalRegion.name.en} should avoid waters along the canal until basin chemistry returns to normal.`,
+        fr: `Pêcheurs près de ${coastalRegion.name.fr} : évitez les eaux longeant le canal jusqu'au retour à la normale.`,
+      },
+      actions: [
+        loc("تأجيل الخروج من مصب القنال", "Postpone departures from the canal mouth", "Reporter les sorties depuis l'embouchure"),
+        loc("تجنب جمع الصدفيات قرب سحابة التصريف", "Avoid shellfish near the discharge plume", "Éviter la récolte de coquillages près du panache"),
+      ],
     },
     {
       audience: "schools",
       level: schoolRegion.severity,
-      message: `على المدارس في الحزام الشرقي إبقاء التلاميذ داخل الأقسام ما دام SO₂ عند ${so2.value.toFixed(1)} ppm والخطر في اتجاه الرياح مرتفعا.`,
-      actions: ["إيقاف الأنشطة الرياضية الخارجية", "تشغيل التهوية على سحب مرشح"],
+      message: {
+        ar: `على المدارس في الحزام الشرقي إبقاء التلاميذ داخل الأقسام ما دام SO₂ عند ${so2.value.toFixed(1)} ppm والخطر في اتجاه الرياح مرتفعا.`,
+        en: `Schools in the eastern belt should keep pupils indoors while SO₂ stays at ${so2.value.toFixed(1)} ppm and downwind risk is high.`,
+        fr: `Les écoles de la ceinture est doivent garder les élèves à l'intérieur tant que SO₂ reste à ${so2.value.toFixed(1)} ppm.`,
+      },
+      actions: [
+        loc("إيقاف الأنشطة الرياضية الخارجية", "Stop outdoor sports activities", "Arrêter les activités sportives extérieures"),
+        loc("تشغيل التهوية على سحب مرشح", "Run ventilation on filtered intake", "Activer la ventilation sur prise filtrée"),
+      ],
     },
     {
       audience: "hospitals",
       level: so2.value >= 70 ? "danger" : so2.value >= 55 ? "warning" : "normal",
-      message: "على المستشفيات الاستعداد لاستقبال حالات تنفسية إضافية إذا ارتفعت الأعراض في الممر الساحلي.",
-      actions: ["تجهيز مخزون الأكسجين وأجهزة الرذاذ", "التنسيق مع الحماية المدنية حول شكاوى التعرض"],
+      message: loc(
+        "على المستشفيات الاستعداد لاستقبال حالات تنفسية إضافية إذا ارتفعت الأعراض في الممر الساحلي.",
+        "Hospitals should prepare for additional respiratory cases if symptoms rise along the coastal corridor.",
+        "Les hôpitaux doivent se préparer à des cas respiratoires supplémentaires en cas de symptômes côtiers.",
+      ),
+      actions: [
+        loc(
+          "تجهيز مخزون الأكسجين وأجهزة الرذاذ",
+          "Prepare oxygen stock and nebulizers",
+          "Préparer stock d'oxygène et nébuliseurs",
+        ),
+        loc(
+          "التنسيق مع الحماية المدنية حول شكاوى التعرض",
+          "Coordinate with civil protection on exposure complaints",
+          "Coordonner avec la protection civile sur les plaintes",
+        ),
+      ],
     },
   ];
 }
@@ -809,19 +1003,32 @@ function buildLoss(scenario: Scenario, step: number): LossInfo {
   };
 }
 
-export function compassFromDegrees(degrees: number): string {
-  const directions = [
-    "الشمال",
-    "الشمال الشرقي",
-    "الشرق",
-    "الجنوب الشرقي",
-    "الجنوب",
-    "الجنوب الغربي",
-    "الغرب",
-    "الشمال الغربي",
-  ];
-  return directions[Math.round(degrees / 45) % directions.length];
+const COMPASS_LOCALIZED: LocalizedString[] = [
+  loc("الشمال", "north", "nord"),
+  loc("الشمال الشرقي", "northeast", "nord-est"),
+  loc("الشرق", "east", "est"),
+  loc("الجنوب الشرقي", "southeast", "sud-est"),
+  loc("الجنوب", "south", "sud"),
+  loc("الجنوب الغربي", "southwest", "sud-ouest"),
+  loc("الغرب", "west", "ouest"),
+  loc("الشمال الغربي", "northwest", "nord-ouest"),
+];
+
+export function compassLocalized(degrees: number): LocalizedString {
+  const idx = Math.round((((degrees % 360) + 360) % 360) / 45) % 8;
+  return COMPASS_LOCALIZED[idx];
 }
+
+/** Backwards-compat helper: returns the right field for the given locale. */
+export function compassFromDegrees(degrees: number, locale: Locale = "ar"): string {
+  return compassLocalized(degrees)[locale];
+}
+
+/** Re-export so other files can keep importing the helper. */
+export { unitStatusLocalized };
+
+// Used by `same()` to keep tree-shake friendly silence.
+void same;
 
 export function getPrimaryRegionId(state: Pick<SystemState, "regions">): string {
   return [...state.regions].sort((left, right) => right.pollution - left.pollution)[0]?.id ?? "industrial-core";

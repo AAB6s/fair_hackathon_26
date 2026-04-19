@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
+import { useLocale } from "../i18n/LocaleContext";
+import type { LocalizedString } from "../i18n/types";
 import { glowShadow, severityTone } from "../theme/dashboardTheme";
 import type { Severity } from "../types";
 import { severityLabel } from "../utils/classify";
 
 interface StatusBadgeProps {
   severity: Severity;
-  label?: string;
+  label?: LocalizedString | string;
   pulse?: boolean;
   compact?: boolean;
 }
@@ -22,6 +24,7 @@ export function StatusBadge({
   pulse = false,
   compact = false,
 }: StatusBadgeProps) {
+  const { tr } = useLocale();
   const tone = severityTone(severity);
 
   return (
@@ -47,7 +50,7 @@ export function StatusBadge({
       >
         {iconMap[severity]}
       </span>
-      {label ?? severityLabel(severity)}
+      {tr(label ?? severityLabel(severity))}
     </motion.span>
   );
 }

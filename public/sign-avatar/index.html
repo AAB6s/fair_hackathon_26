@@ -1,0 +1,126 @@
+import { motion } from "framer-motion";
+import { useCallback,useEffect,useMemo,useRef,useState,type ReactNode } from "react";
+import { useLocale } from "../i18n/LocaleContext";
+import type { Locale } from "../i18n/types";
+import { useSpeech,type SpeechLang } from "../hooks/useSpeech";
+import type { SystemState } from "../types";
+import { buildDashboardSummary } from "../utils/summary";
+
+interface AccessibilityHubProps{state:SystemState;}
+
+const LOCALE_BADGE:Record<Locale,{label:string;tag:string}>={
+ar:{label:"العربية",tag:"AR"},
+en:{label:"English",tag:"EN"},
+fr:{label:"Francais",tag:"FR"},
+};
+
+const LOOP_STORAGE_KEY="aegis-a11y-loop";
+
+function SpeakerIcon(){return(<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6a8 8 0 0 1 0 12"/></svg>);}
+function PlayIcon(){return(<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5v14l11-7Z"/></svg>);}
+function PauseIcon(){return(<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>);}
+function StopIcon(){return(<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.8"/></svg>);}
+function LoopIcon(){return(<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2v5h-5"/><path d="M7 22v-5h5"/><path d="M20 11a8 8 0 0 0-13.7-5.7L4 7"/><path d="M4 13a8 8 0 0 0 13.7 5.7L20 17"/></svg>);}
+
+function readStoredLoop():boolean{try{return localStorage.getItem(LOOP_STORAGE_KEY)==="1";}catch{return false;}}
+
+export function AccessibilityHub({state}:AccessibilityHubProps){
+const {locale,t,tr,bcp47}=useLocale();
+const speech=useSpeech(bcp47 as SpeechLang);
+
+const transcriptRef=useRef<HTMLDivElement|null>(null);
+const manualStopRef=useRef(false);
+const wasSpeakingRef=useRef(false);
+const [loopEnabled,setLoopEnabled]=useState<boolean>(()=>readStoredLoop());
+
+const segments=useMemo(()=>buildDashboardSummary(state),[state]);
+const localizedSegments=useMemo(()=>segments.map(s=>({...s,localizedText:tr(s.text)})),[segments,tr]);
+const speechSegments=useMemo(()=>localizedSegments.map(s=>({text:s.localizedText,lang:bcp47 as SpeechLang})),[localizedSegments,bcp47]);
+
+const runPlayback=useCallback(()=>{
+if(!speechSegments.length)return;
+manualStopRef.current=false;
+speech.stop();
+setTimeout(()=>speech.speak(speechSegments),50);
+},[speech,speechSegments]);
+
+const handlePauseResume=useCallback(()=>{
+manualStopRef.current=false;
+if(speech.paused)return speech.resume();
+if(speech.speaking)speech.pause();
+},[speech]);
+
+const handleStop=useCallback(()=>{
+manualStopRef.current=true;
+speech.stop();
+},[speech]);
+
+const handleToggleLoop=useCallback(()=>{
+setLoopEnabled(c=>{
+const n=!c;
+try{localStorage.setItem(LOOP_STORAGE_KEY,n?"1":"0");}catch{}
+return n;
+});
+},[]);
+
+useEffect(()=>{if(speech.lang!==bcp47)speech.setLang(bcp47 as SpeechLang);},[bcp47,speech]);
+
+useEffect(()=>{
+if(speech.currentIndex<0)return;
+const node=transcriptRef.current?.querySelector<HTMLElement>(`[data-seg-index="${speech.currentIndex}"]`);
+node?.scrollIntoView({behavior:"smooth",block:"nearest"});
+},[speech.currentIndex]);
+
+useEffect(()=>{
+const finished=wasSpeakingRef.current&&!speech.speaking&&!speech.paused;
+wasSpeakingRef.current=speech.speaking;
+if(!finished||!loopEnabled||manualStopRef.current)return;
+const timer=window.setTimeout(()=>runPlayback(),500);
+return()=>window.clearTimeout(timer);
+},[loopEnabled,runPlayback,speech.paused,speech.speaking]);
+
+const localeBadge=LOCALE_BADGE[locale];
+const pauseLabel=speech.paused?t("accessibility.resume"):t("accessibility.pause");
+const loopLabel=tr({ar:"تكرار",en:"Loop",fr:"Boucle"});
+
+return(
+<section className="panel overflow-hidden">
+<div className="panel-header">
+<div>
+<p className="panel-title">{t("panels.accessibility")}</p>
+<h2 className="mt-1 font-display text-lg text-ink-primary">{t("accessibility.summaryTitle")}</h2>
+</div>
+<div className="flex flex-wrap items-center gap-2">
+<span className="chip border border-brand/25 bg-brand/10 text-brand">
+<span className="number text-[0.62rem] opacity-75">{localeBadge.tag}</span>{localeBadge.label}
+</span>
+</div>
+</div>
+
+<div className="border-b border-white/8 px-3 py-2">
+<div className="flex gap-2 flex-wrap">
+<ControlButton icon={<PlayIcon/>} label={t("accessibility.readSummary")} onClick={runPlayback}/>
+<ControlButton icon={speech.paused?<PlayIcon/>:<PauseIcon/>} label={pauseLabel} onClick={handlePauseResume}/>
+<ControlButton icon={<StopIcon/>} label={t("accessibility.stop")} onClick={handleStop}/>
+<ControlButton icon={<LoopIcon/>} label={loopLabel} onClick={handleToggleLoop}/>
+</div>
+</div>
+
+<div className="p-3">
+<div ref={transcriptRef} className="max-h-[18rem] overflow-y-auto">
+<ol className="space-y-1.5">
+{localizedSegments.map((s,i)=>(
+<li key={s.id} data-seg-index={i} className={`px-3 py-2 ${i===speech.currentIndex?"bg-brand/10":""}`}>
+{s.localizedText}
+</li>
+))}
+</ol>
+</div>
+</div>
+</section>
+);
+}
+
+function ControlButton({icon,label,onClick}:{icon:ReactNode;label:string;onClick:()=>void}){
+return(<button onClick={onClick} className="px-3 py-2 border rounded-full flex items-center gap-2">{icon}{label}</button>);
+}

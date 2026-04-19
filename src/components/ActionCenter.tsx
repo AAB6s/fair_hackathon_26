@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useLocale } from "../i18n/LocaleContext";
 import { priorityTone, severityTone } from "../theme/dashboardTheme";
 import type { Action, Prediction, Severity } from "../types";
 import { severityLabel } from "../utils/classify";
@@ -9,21 +10,21 @@ interface ActionCenterProps {
   prediction: Prediction;
 }
 
-const priorityLabel: Record<Action["priority"], string> = {
-  immediate: "فوري",
-  recommended: "موصى",
-};
-
 export function ActionCenter({
   actions,
   globalSeverity,
   prediction,
 }: ActionCenterProps) {
+  const { t, tr } = useLocale();
   const severity = severityTone(globalSeverity);
   const visibleActions = actions.slice(0, 4);
   const immediateCount = actions.filter(
     (action) => action.priority === "immediate",
   ).length;
+  const priorityLabel: Record<Action["priority"], string> = {
+    immediate: t("priority.immediate"),
+    recommended: t("priority.recommended"),
+  };
 
   return (
     <motion.aside
@@ -40,24 +41,24 @@ export function ActionCenter({
 
       <div className="panel-header">
         <div>
-          <p className="panel-title">القرار</p>
+          <p className="panel-title">{t("panels.actions")}</p>
           <h2 className="mt-1 font-display text-lg text-ink-primary">
-            التنفيذ الآن
+            {t("panels.actionsTitle")}
           </h2>
         </div>
         <span className={`chip border ${severity.chip}`}>
-          {severityLabel(globalSeverity)}
+          {tr(severityLabel(globalSeverity))}
         </span>
       </div>
 
       <div className="space-y-3 p-3">
         <div className="grid grid-cols-3 gap-2">
           <div className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3">
-            <p className="panel-title mb-1">فوري</p>
+            <p className="panel-title mb-1">{t("priority.immediate")}</p>
             <p className="number text-2xl text-ink-primary">{immediateCount}</p>
           </div>
           <div className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3">
-            <p className="panel-title mb-1">30 د</p>
+            <p className="panel-title mb-1">30 {t("time.minutes")}</p>
             <p className="number text-2xl text-ink-primary">
               {(
                 prediction.forecast.find((point) => point.t === 30)?.value ??
@@ -67,9 +68,9 @@ export function ActionCenter({
             </p>
           </div>
           <div className="data-sweep rounded-2xl border border-white/8 bg-white/[0.04] p-3">
-            <p className="panel-title mb-1">ذروة</p>
+            <p className="panel-title mb-1">{t("prediction.peakIn")}</p>
             <p className="number text-2xl text-ink-primary">
-              {prediction.peakInMinutes} د
+              {prediction.peakInMinutes} {t("time.minutes")}
             </p>
           </div>
         </div>
@@ -96,7 +97,7 @@ export function ActionCenter({
 
               <div className="flex items-center justify-between gap-3">
                 <h3 className="min-w-0 overflow-hidden font-display text-sm leading-5 text-ink-primary [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
-                  {action.title}
+                  {tr(action.title)}
                 </h3>
                 <span className={`chip border ${priorityTone(action.priority).chip}`}>
                   {priorityLabel[action.priority]}
@@ -104,12 +105,14 @@ export function ActionCenter({
               </div>
 
               <p className="mt-2 text-[0.78rem] leading-5 text-ink-secondary">
-                {action.reason}
+                {tr(action.reason)}
               </p>
 
               <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
-                <span className="truncate text-ink-muted">{action.target}</span>
-                <span className="number text-ink-primary">{action.etaMinutes} د</span>
+                <span className="truncate text-ink-muted">{tr(action.target)}</span>
+                <span className="number text-ink-primary">
+                  {action.etaMinutes} {t("time.minutes")}
+                </span>
               </div>
             </motion.div>
           ))}

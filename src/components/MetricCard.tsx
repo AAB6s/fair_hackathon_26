@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useLocale } from "../i18n/LocaleContext";
 import { dashboardTheme, severityTone } from "../theme/dashboardTheme";
 import type { Indicator } from "../types";
 import { classify } from "../utils/classify";
@@ -7,13 +8,6 @@ import { StatusBadge } from "./StatusBadge";
 interface MetricCardProps {
   indicator: Indicator;
 }
-
-const compactLabel: Record<Indicator["key"], string> = {
-  so2: "SO₂",
-  phosphate: "فوسفات",
-  ph: "pH",
-  water: "البحر",
-};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -30,6 +24,7 @@ function buildPoints(values: number[], min: number, max: number): string {
 }
 
 export function MetricCard({ indicator }: MetricCardProps) {
+  const { t, tr } = useLocale();
   const severity = classify(indicator);
   const tone = severityTone(severity);
   const previous = indicator.trend.at(-2) ?? indicator.value;
@@ -48,7 +43,6 @@ export function MetricCard({ indicator }: MetricCardProps) {
     ((indicator.dangerAt - indicator.min) /
       Math.max(indicator.max - indicator.min, 1)) *
     100;
-  const label = compactLabel[indicator.key];
 
   return (
     <motion.article
@@ -66,7 +60,7 @@ export function MetricCard({ indicator }: MetricCardProps) {
 
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="panel-title truncate">{label}</p>
+          <p className="panel-title truncate">{tr(indicator.label)}</p>
         </div>
         <StatusBadge severity={severity} compact />
       </div>
@@ -97,7 +91,7 @@ export function MetricCard({ indicator }: MetricCardProps) {
 
       <div className="mt-3 flex items-center justify-between text-[0.72rem] text-ink-secondary">
         <span>
-          حمل <span className="number text-ink-primary">{Math.round(load)}%</span>
+          {t("unit.load")} <span className="number text-ink-primary">{Math.round(load)}%</span>
         </span>
         <span className="number">
           {indicator.min.toFixed(indicator.key === "ph" ? 1 : 0)} -{" "}
@@ -107,7 +101,7 @@ export function MetricCard({ indicator }: MetricCardProps) {
 
       <div className="data-sweep mt-2 rounded-[1rem] border border-white/8 bg-black/10 px-2.5 py-2">
         <div className="mb-2 flex items-center justify-between text-[0.72rem] text-ink-muted">
-          <span>المسار</span>
+          <span>{t("prediction.forecastLabel")}</span>
           <span className="number text-ink-primary">{Math.round(load)}%</span>
         </div>
 

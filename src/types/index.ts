@@ -1,10 +1,12 @@
+import type { LocalizedString } from "../i18n/types";
+
 export type Severity = "normal" | "warning" | "danger";
 
 export type Scenario = "normal" | "leak" | "high_pollution" | "scrubber_failure";
 
 export interface Indicator {
   key: "so2" | "phosphate" | "ph" | "water";
-  label: string;
+  label: LocalizedString;
   unit: string;
   value: number;
   min: number;
@@ -14,12 +16,12 @@ export interface Indicator {
   /** Lower-better thresholds (e.g. pH below 6.5 is bad) */
   invert?: boolean;
   trend: number[]; // recent samples for sparkline
-  description: string;
+  description: LocalizedString;
 }
 
 export interface Region {
   id: string;
-  name: string;
+  name: LocalizedString;
   population: number;
   /** SVG polygon points (viewBox 0 0 600 480) */
   path: string;
@@ -38,20 +40,20 @@ export interface Alert {
   ts: number;
   type: "threshold" | "leak" | "spike" | "system";
   severity: Severity;
-  title: string;
-  detail: string;
-  source: string;
+  title: LocalizedString;
+  detail: LocalizedString;
+  source: LocalizedString;
 }
 
 export interface Action {
   id: string;
-  title: string;
-  reason: string;
-  target: string;
+  title: LocalizedString;
+  reason: LocalizedString;
+  target: LocalizedString;
   priority: "immediate" | "recommended";
   category: "stop" | "scrubber" | "carbon" | "adjust" | "evacuate" | "monitor";
   etaMinutes: number;
-  impact: string;
+  impact: LocalizedString;
 }
 
 export interface PredictionPoint {
@@ -61,12 +63,12 @@ export interface PredictionPoint {
 }
 
 export interface Prediction {
-  metric: string;
+  metric: LocalizedString;
   unit: string;
   history: PredictionPoint[];
   forecast: PredictionPoint[];
   confidence: number; // 0..1
-  rationale: string;
+  rationale: LocalizedString;
   peakInMinutes: number;
   peakValue: number;
   windDirection: number; // degrees, 0 = north
@@ -76,7 +78,7 @@ export interface Prediction {
 
 export interface FactoryUnit {
   id: string;
-  name: string;
+  name: LocalizedString;
   status: "online" | "degraded" | "offline" | "stopped";
   load: number; // 0-100
   efficiency: number; // 0-100
@@ -94,8 +96,8 @@ export interface LossInfo {
 export interface Advisory {
   audience: "residents" | "fishermen" | "schools" | "hospitals";
   level: Severity;
-  message: string;
-  actions: string[];
+  message: LocalizedString;
+  actions: LocalizedString[];
 }
 
 export interface TreatmentModelInput {

@@ -1,0 +1,133 @@
+================================================================================
+PANACHE VISUAL PLUME CONTROL - HOW TO USE THE MODEL
+================================================================================
+
+
+1. WHAT YOU HAVE
+----------------
+
+After running the training (panache_training.ipynb OR export_models.py), the
+following files exist in this folder:
+
+    panache_training.ipynb           -> the notebook that trains everything
+    export_models.py                 -> headless runner, calls the notebook
+    pipeline.py                      -> the script you use to make predictions
+    api.py                           -> FastAPI server exposing /api/panache/*
+    dataset_panache_visuel.csv       -> generated synthetic training set
+    models/
+        metadata.json                        -> best-algo and metrics info
+        scaler_classification.pkl            -> feature scaler
+        clf_visibilite_panache.pkl           -> plume-visibility classifier
+        reg_puissance_chauffage.pkl          -> heating-power regressor
+        clf_decision_ia.pkl                  -> categorical action classifier
+        label_encoder_decision.pkl           -> decision label encoder
+
+You do NOT need the notebook to make predictions. The notebook trains and
+saves everything; afterwards pipeline.py and api.py do the work.
+
+
+2. REQUIREMENTS
+---------------
+
+Python 3.10 or higher. Install once:
+
+    pip install -r requirements.txt
+
+
+3. EASIEST WAY TO CHECK IT WORKS
+--------------------------------
+
+From this folder:
+
+    python pipeline.py
+
+This runs a built-in demo sample and prints a full recommendation.
+
+
+4. USING IT FROM YOUR OWN PYTHON CODE
+-------------------------------------
+
+    from pipeline import PanachePipeline
+
+    pipe = PanachePipeline(models_dir="models")
+
+    sample = {
+        "T_amb_C": 10.0, "humidite_rel_pct": 88.0, "T_rosee_C": 8.0,
+        "vitesse_vent_ms": 3.2, "pression_hpa": 1018.0,
+        "T_gaz_procede_C": 60.0, "H_gaz_pct": 92.0,
+        "debit_gaz_nm3h": 42000.0, "delta_T_gaz_amb": 50.0,
+        "heure": 9, "mois": 1, "jour_semaine": 1,
+        "production_factor": 0.9,
+    }
+
+    print(pipe.predict(sample))
+
+Example output:
+
+    {
+        "panache_visible": 1,
+        "prob_visible": 0.91,
+        "puissance_kW": 78.4,
+        "puissance_continue_kW": 120.0,
+        "economie_horaire_DT": 7.49,
+        "decision": "chauffage_modere"
+    }
+
+
+5. SERVING THE MODEL AS AN HTTP API
+-----------------------------------
+
+From the project root (one level above this folder):
+
+    python -m uvicorn model2.api:app --host 0.0.0.0 --port 8001
+
+Endpoints:
+
+    GET  /api/panache/health     -> liveness, lists features and decision labels
+    GET  /api/panache/metadata   -> best algorithms + metrics per target
+    POST /api/panache/predict    -> body = PanacheInput, returns PanacheOutput
+
+
+6. INPUT FEATURES - THE 13 REQUIRED FIELDS
+------------------------------------------
+
+    T_amb_C            Ambient temperature                (degC)
+    humidite_rel_pct   Relative humidity                  (%)
+    T_rosee_C          Dew point                          (degC)
+    vitesse_vent_ms    Wind speed                         (m/s)
+    pression_hpa       Atmospheric pressure               (hPa)
+    T_gaz_procede_C    Stack gas temperature              (degC)
+    H_gaz_pct          Stack gas humidity                 (%)
+    debit_gaz_nm3h     Stack gas flow rate                (Nm3/h)
+    delta_T_gaz_amb    T_gaz - T_amb                      (degC)
+    heure              Hour of day                        (0..23)
+    mois               Month                              (1..12)
+    jour_semaine       Day of week, Monday=0              (0..6)
+    production_factor  Relative production load           (~0.4 .. 1.1)
+
+
+7. OUTPUT FIELDS
+----------------
+
+    panache_visible         0/1 - plume visible?
+    prob_visible            probability that plume is visible
+    puissance_kW            recommended heating power
+    puissance_continue_kW   power used by the continuous fallback
+    economie_horaire_DT     savings per hour vs continuous heating (DT)
+    decision                one of: nuit_inactif, chauffage_inutile,
+                                    chauffage_leger, chauffage_modere,
+                                    chauffage_maximal
+
+
+8. RETRAINING WITH REAL DATA
+----------------------------
+
+Replace generate_panache_dataset() inside the notebook with your own
+pd.read_csv("real_panache_data.csv"). Run all cells, then re-run
+export_models.py (or this project's `npm run model2:train`). The new
+models drop into models/ and pipeline.py/api.py pick them up unchanged.
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
