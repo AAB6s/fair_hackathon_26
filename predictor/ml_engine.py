@@ -98,26 +98,32 @@ def _nearest_zone(lat, lon):
 # Input: gas_ppm, wind_direction, wind_speed, hour, season (str)
 # ═══════════════════════════════════════════════════════════════════════════════
 def predict_gas_and_danger(gas_ppm, wind_direction, wind_speed, hour, season):
-    """
-    Returns (gas_label, danger_label, confidence, used_fallback)
-    gas_label  : 'SO2' | 'HF' | 'NOx'
-    danger_label: 'low' | 'medium' | 'high'
-    confidence : float 0-1 or None
-    used_fallback: bool
-    """
     model_gas    = _load('model_gas.pkl')
     model_danger = _load('model_danger.pkl')
-    encoders     = _load('encoders.pkl')  # keys: season, gas_type, danger_order
+    encoders     = _load('encoders.pkl')
 
     if model_gas and model_danger and encoders:
-        se  = encoders['season'].transform([season])[0]
-        X   = np.array([_build_features_m1(gas_ppm, wind_direction,
-                                            wind_speed, hour, se)])
+        # Safe season encoding — fall back to physics if season unseen
+        try:
+            se = encoders['season'].transform([season])[0]
+        except ValueError:
+            # Try common variations
+            season_map = {
+                'winter': 'Winter', 'spring': 'Spring',
+                'summer': 'Summer', 'autumn': 'Autumn', 'fall': 'Autumn'
+            }
+            season_fixed = season_map.get(season.lower(), season)
+            try:
+                se = encoders['season'].transform([season_fixed])[0]
+            except ValueError:
+                logger.warning(f"Unknown season '{season}' → using fallback")
+                return _gas_fallback(gas_ppm)
+
+        X = np.array([_build_features_m1(gas_ppm, wind_direction, wind_speed, hour, se)])
         gas_enc    = model_gas.predict(X)[0]
         danger_enc = model_danger.predict(X)[0]
 
         gas_label = encoders['gas_type'].inverse_transform([gas_enc])[0]
-
         danger_order_inv = {v: k for k, v in encoders['danger_order'].items()}
         danger_label = danger_order_inv[danger_enc]
 
@@ -127,18 +133,18 @@ def predict_gas_and_danger(gas_ppm, wind_direction, wind_speed, hour, season):
         return gas_label, danger_label, confidence, False
 
     else:
-        # Physics fallback: PPM proxy from temperature-like ppm value
-        # Pick gas by which threshold the PPM hits first
-        if gas_ppm > 200:
-            gas_label = 'SO2'
-        elif gas_ppm > 60:
-            gas_label = 'NOx'
-        else:
-            gas_label = 'HF'
+        return _gas_fallback(gas_ppm)
 
-        danger_label = _danger_from_ppm(gas_label, gas_ppm)
-        return gas_label, danger_label, 0.65, True
 
+def _gas_fallback(gas_ppm):
+    if gas_ppm > 200:
+        gas_label = 'SO2'
+    elif gas_ppm > 60:
+        gas_label = 'NOx'
+    else:
+        gas_label = 'HF'
+    danger_label = _danger_from_ppm(gas_label, gas_ppm)
+    return gas_label, danger_label, 0.65, True
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MODEL 2 — GPS + Zone (chained from Model 1)

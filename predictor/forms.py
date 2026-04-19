@@ -1,6 +1,15 @@
 from django import forms
 
-SEASON_CHOICES = [
+# Model 1+2 form — lowercase (matches encoders.pkl)
+SEASON_CHOICES_LOWER = [
+    ('winter', 'Winter'),
+    ('spring', 'Spring'),
+    ('summer', 'Summer'),
+    ('autumn', 'Autumn'),
+]
+
+# Model 3 form — capitalized (matches encoders_m3.pkl)
+SEASON_CHOICES_UPPER = [
     ('Winter', 'Winter'),
     ('Spring', 'Spring'),
     ('Summer', 'Summer'),
@@ -18,10 +27,6 @@ S = lambda: forms.Select(attrs={'class': 'form-select'})
 
 
 class SensorPredictionForm(forms.Form):
-    """
-    Model 1 + 2 pipeline.
-    Inputs match the notebook: gas_ppm, wind_direction, wind_speed, hour, season.
-    """
     gas_ppm = forms.FloatField(
         label='Gas Concentration (ppm)', min_value=0, max_value=5000,
         widget=W(step='0.1', placeholder='e.g. 320')
@@ -39,15 +44,11 @@ class SensorPredictionForm(forms.Form):
         widget=W(step='1', placeholder='e.g. 14')
     )
     season = forms.ChoiceField(
-        label='Season', choices=SEASON_CHOICES, widget=S()
+        label='Season', choices=SEASON_CHOICES_LOWER, widget=S()
     )
 
 
 class MeteoPredictionForm(forms.Form):
-    """
-    Model 3 — Real Meteo Pipeline.
-    Inputs match notebook Cell 10: predict_zone_from_meteo().
-    """
     temp = forms.FloatField(
         label='Daily Mean Temperature (°C)', min_value=-10, max_value=55,
         widget=W(step='0.1', placeholder='e.g. 32')
@@ -61,7 +62,7 @@ class MeteoPredictionForm(forms.Form):
         widget=W(step='1', placeholder='0 – 360')
     )
     season = forms.ChoiceField(
-        label='Season', choices=SEASON_CHOICES, widget=S()
+        label='Season', choices=SEASON_CHOICES_UPPER, widget=S()
     )
     gas_type = forms.ChoiceField(
         label='Gas Type', choices=GAS_TYPE_CHOICES, widget=S()
